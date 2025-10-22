@@ -25,17 +25,35 @@ function fetch_featured_products(int $limit = 3): array
     }
 }
 
-function fetch_products_by_category(?string $category = null): array
+function fetch_products_by_category(?string $category = null, ?int $limit = null): array
 {
     try {
         $pdo = get_db_connection();
         if ($category) {
-            $stmt = $pdo->prepare('SELECT * FROM products WHERE category = :category ORDER BY name');
-            $stmt->execute(['category' => $category]);
+            $sql = 'SELECT * FROM products WHERE category = :category ORDER BY name';
+            if ($limit !== null) {
+                $sql .= ' LIMIT :limit';
+            }
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->bindValue(':category', $category, PDO::PARAM_STR);
+            if ($limit !== null) {
+                $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            }
+            $stmt->execute();
             return $stmt->fetchAll();
         }
 
-        $stmt = $pdo->query('SELECT * FROM products ORDER BY category, name');
+        $sql = 'SELECT * FROM products ORDER BY category, name';
+        if ($limit !== null) {
+            $sql .= ' LIMIT :limit';
+        }
+
+        $stmt = $pdo->prepare($sql);
+        if ($limit !== null) {
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        }
+        $stmt->execute();
         return $stmt->fetchAll();
     } catch (Throwable $exception) {
         return [];

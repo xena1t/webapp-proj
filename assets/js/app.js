@@ -184,25 +184,42 @@ document.querySelectorAll('.sidebar a').forEach((link) => {
     });
 });
 
-const dropdown = document.querySelector('.sidebar-dropdown');
-if (dropdown) {
+document.querySelectorAll('.sidebar-dropdown').forEach((dropdown) => {
     const trigger = dropdown.querySelector('.sidebar-label');
     const submenu = dropdown.querySelector('.sidebar-submenu');
+    const supportsHover = window.matchMedia('(hover: hover)').matches;
 
     const setExpanded = (expanded) => {
-        if (!trigger) return;
-        trigger.setAttribute('aria-expanded', String(expanded));
+        if (trigger) {
+            trigger.setAttribute('aria-expanded', String(expanded));
+        }
+        if (submenu) {
+            submenu.hidden = !expanded;
+            submenu.setAttribute('aria-hidden', String(!expanded));
+        }
         dropdown.classList.toggle('open', expanded);
     };
 
-    if (trigger) {
-        dropdown.addEventListener('mouseenter', () => setExpanded(true));
-        dropdown.addEventListener('mouseleave', () => setExpanded(false));
+    setExpanded(false);
 
-        trigger.addEventListener('focus', () => setExpanded(true));
-        trigger.addEventListener('click', () => {
+    if (trigger) {
+        if (supportsHover) {
+            dropdown.addEventListener('mouseenter', () => setExpanded(true));
+            dropdown.addEventListener('mouseleave', () => setExpanded(false));
+        }
+
+        trigger.addEventListener('click', (event) => {
+            event.preventDefault();
             const expanded = trigger.getAttribute('aria-expanded') === 'true';
             setExpanded(!expanded);
+        });
+
+        trigger.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                const expanded = trigger.getAttribute('aria-expanded') === 'true';
+                setExpanded(!expanded);
+            }
         });
 
         trigger.addEventListener('blur', (event) => {
@@ -213,10 +230,14 @@ if (dropdown) {
     }
 
     if (submenu) {
+        submenu.querySelectorAll('a').forEach((link) => {
+            link.addEventListener('focus', () => setExpanded(true));
+        });
+
         submenu.addEventListener('focusout', (event) => {
             if (!dropdown.contains(event.relatedTarget)) {
                 setExpanded(false);
             }
         });
     }
-}
+});

@@ -161,6 +161,10 @@ a:focus {
     border-left: 1px solid var(--border-color);
 }
 
+.sidebar-submenu[hidden] {
+    display: none !important;
+}
+
 .sidebar-dropdown.open > .sidebar-submenu {
     display: flex;
 }
