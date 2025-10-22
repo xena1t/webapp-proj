@@ -3,13 +3,32 @@ const newsletterForm = document.getElementById('newsletterForm');
 const feedback = newsletterForm ? newsletterForm.querySelector('.form-feedback') : null;
 const modalCloseButtons = document.querySelectorAll('[data-close-modal]');
 const openModalTriggers = document.querySelectorAll('[data-open-modal]');
+const newsletterStorageKey = 'techmart_newsletter_dismissed';
 let modalHasOpened = false;
+
+function hasDismissedNewsletter() {
+    try {
+        return window.localStorage && localStorage.getItem(newsletterStorageKey) === '1';
+    } catch (error) {
+        return false;
+    }
+}
+
+function persistNewsletterDismissal() {
+    try {
+        if (window.localStorage) {
+            localStorage.setItem(newsletterStorageKey, '1');
+        }
+    } catch (error) {
+        // Ignore storage failures (e.g., private mode)
+    }
+}
 
 function openModal(options = {}) {
     if (!modal) return;
 
     const auto = options.auto ?? false;
-    if (auto && modalHasOpened) {
+    if (auto && (modalHasOpened || hasDismissedNewsletter())) {
         return;
     }
 
@@ -25,6 +44,7 @@ function closeModal() {
     modal.hidden = true;
     modal.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('modal-open');
+    persistNewsletterDismissal();
 }
 
 if (modal) {
@@ -102,6 +122,7 @@ if (newsletterForm) {
             if (result.success) {
                 newsletterForm.reset();
                 showFeedback(result.message, false);
+                persistNewsletterDismissal();
                 setTimeout(closeModal, 1800);
             } else {
                 showFeedback(result.message || 'Something went wrong. Please try again.', true);

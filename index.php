@@ -8,7 +8,7 @@ $categories = fetch_categories();
     <div>
         <span class="badge">New arrivals</span>
         <h1>Elevate your setup with cutting-edge tech.</h1>
-        <p>Discover curated laptops, custom PC components, immersive peripherals, and smart home essentials—handpicked by enthusiasts for performance seekers.</p>
+        <p>Discover curated laptops, custom PC components, and immersive peripherals—handpicked by enthusiasts for performance seekers.</p>
         <div class="hero-actions">
             <a class="btn-primary" href="products.php">Shop the collection</a>
             <a class="btn-secondary" href="#insights">Explore categories</a>

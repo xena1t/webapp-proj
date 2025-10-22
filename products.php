@@ -15,7 +15,7 @@ $products = fetch_products_by_category($selectedCategory);
     <header style="margin-bottom: 2.5rem;">
         <span class="badge">Catalog</span>
         <h1 class="section-title">Discover precision-crafted technology</h1>
-        <p class="section-subtitle">Filter by category to find devices engineered for productivity, play, or ambient living.</p>
+        <p class="section-subtitle">Filter by category to find devices engineered for productivity, play, or creative workflows.</p>
         <div class="filter-bar">
             <form class="filter-form" method="get">
                 <label for="categoryFilter">Category</label>

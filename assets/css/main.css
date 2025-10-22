@@ -161,10 +161,14 @@ a:focus {
     border-left: 1px solid var(--border-color);
 }
 
-.sidebar-dropdown:hover > .sidebar-submenu,
-.sidebar-dropdown:focus-within > .sidebar-submenu,
 .sidebar-dropdown.open > .sidebar-submenu {
     display: flex;
+}
+
+@media (hover: hover) {
+    .sidebar-dropdown:hover > .sidebar-submenu {
+        display: flex;
+    }
 }
 
 .sidebar-sublink {
