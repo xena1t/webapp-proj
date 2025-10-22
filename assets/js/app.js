@@ -7,6 +7,7 @@ const modalStorageKey = 'techmart_newsletter_seen';
 function openModal() {
     if (modal) {
         modal.hidden = false;
+        modal.setAttribute('aria-hidden', 'false');
         document.body.classList.add('modal-open');
     }
 }
@@ -14,6 +15,7 @@ function openModal() {
 function closeModal() {
     if (modal) {
         modal.hidden = true;
+        modal.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('modal-open');
     }
 }
@@ -26,9 +28,20 @@ function markModalSeen() {
     localStorage.setItem(modalStorageKey, '1');
 }
 
-if (modal && shouldShowModal()) {
-    window.addEventListener('load', () => {
-        setTimeout(openModal, 1200);
+if (modal) {
+    modal.setAttribute('aria-hidden', modal.hidden ? 'true' : 'false');
+
+    if (shouldShowModal()) {
+        window.addEventListener('load', () => {
+            setTimeout(openModal, 1200);
+        });
+    }
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !modal.hidden) {
+            markModalSeen();
+            closeModal();
+        }
     });
 }
 

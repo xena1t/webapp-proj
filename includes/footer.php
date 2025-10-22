@@ -22,7 +22,7 @@
 </footer>
 <div class="newsletter-modal" id="newsletterModal" role="dialog" aria-modal="true" aria-labelledby="newsletterTitle" hidden>
     <div class="modal-content">
-        <button class="modal-close" data-close-modal>&times;</button>
+        <button class="modal-close" type="button" data-close-modal aria-label="Close newsletter sign-up">&times;</button>
         <h2 id="newsletterTitle">Unlock 10% off your first order</h2>
         <p>Join our newsletter for exclusive drops, tips, and launch alerts.</p>
         <form id="newsletterForm" action="scripts/subscribe.php" method="post" novalidate>
