@@ -1,7 +1,8 @@
 <?php
-$pageTitle = 'Checkout';
-require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/mailer.php';
+
+$pageTitle = 'Checkout';
 
 $cartItems = fetch_cart_items();
 $totals = calculate_cart_totals($cartItems);
@@ -110,6 +111,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cartItems = fetch_cart_items();
     $totals = calculate_cart_totals($cartItems);
 }
+
+require_once __DIR__ . '/includes/header.php';
 ?>
 <section class="container">
     <h1 class="section-title">Your cart</h1>
