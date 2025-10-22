@@ -38,7 +38,7 @@ $products = fetch_products_by_category($selectedCategory);
                         <h3><?= htmlspecialchars($product['name']) ?></h3>
                         <p><?= htmlspecialchars($product['tagline'] ?? $product['description']) ?></p>
                         <div class="product-price"><?= format_price((float) $product['price']) ?></div>
-                        <a class="btn-secondary" href="/product.php?id=<?= $product['id'] ?>">View details</a>
+                        <a class="btn-secondary" href="product.php?id=<?= $product['id'] ?>">View details</a>
                         <div class="product-image">
                             <img src="<?= htmlspecialchars($product['image_url']) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
                         </div>

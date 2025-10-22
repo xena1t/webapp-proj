@@ -120,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endif; ?>
 
     <?php if (empty($cartItems)): ?>
-        <p>Your cart is empty. <a href="/products.php">Continue shopping</a>.</p>
+        <p>Your cart is empty. <a href="products.php">Continue shopping</a>.</p>
     <?php else: ?>
         <form method="post">
             <table class="cart-table">
@@ -150,7 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </table>
             <div style="margin-top: 1rem; display:flex; gap:1rem;">
                 <button type="submit" name="update_cart" value="1" class="btn-secondary">Update cart</button>
-                <a class="btn-secondary" href="/products.php">Continue shopping</a>
+                <a class="btn-secondary" href="products.php">Continue shopping</a>
             </div>
         </form>
 

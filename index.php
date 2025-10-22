@@ -10,7 +10,7 @@ $categories = fetch_categories();
         <h1>Elevate your setup with cutting-edge tech.</h1>
         <p>Discover curated laptops, custom PC components, immersive peripherals, and smart home essentials—handpicked by enthusiasts for performance seekers.</p>
         <div class="hero-actions">
-            <a class="btn-primary" href="/products.php">Shop the collection</a>
+            <a class="btn-primary" href="products.php">Shop the collection</a>
             <a class="btn-secondary" href="#insights">Explore categories</a>
         </div>
         <div class="highlight">
@@ -33,7 +33,7 @@ $categories = fetch_categories();
                     <h3><?= htmlspecialchars($product['name']) ?></h3>
                     <p><?= htmlspecialchars($product['tagline'] ?? $product['description']) ?></p>
                     <div class="product-price"><?= format_price((float) $product['price']) ?></div>
-                    <a class="btn-secondary" href="/product.php?id=<?= $product['id'] ?>">View details</a>
+                    <a class="btn-secondary" href="product.php?id=<?= $product['id'] ?>">View details</a>
                     <div class="product-image">
                         <img src="<?= htmlspecialchars($product['image_url']) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
                     </div>
@@ -51,7 +51,7 @@ $categories = fetch_categories();
                 <div class="card-content">
                     <h3><?= htmlspecialchars($category) ?></h3>
                     <p>Explore best-in-class <?= strtolower(htmlspecialchars($category)) ?> curated for performance, reliability, and design.</p>
-                    <a class="btn-secondary" href="/products.php?category=<?= urlencode($category) ?>">Browse <?= htmlspecialchars($category) ?></a>
+                    <a class="btn-secondary" href="products.php?category=<?= urlencode($category) ?>">Browse <?= htmlspecialchars($category) ?></a>
                 </div>
             </article>
         <?php endforeach; ?>

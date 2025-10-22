@@ -9,8 +9,8 @@
             <h3>Need Help?</h3>
             <ul>
                 <li><a href="mailto:support@techmart.local">support@techmart.local</a></li>
-                <li><a href="/order-status.php">Track your order</a></li>
-                <li><a href="/checkout.php">Shipping & Returns</a></li>
+                <li><a href="order-status.php">Track your order</a></li>
+                <li><a href="checkout.php">Shipping & Returns</a></li>
             </ul>
         </div>
         <div>
@@ -25,7 +25,7 @@
         <button class="modal-close" data-close-modal>&times;</button>
         <h2 id="newsletterTitle">Unlock 10% off your first order</h2>
         <p>Join our newsletter for exclusive drops, tips, and launch alerts.</p>
-        <form id="newsletterForm" action="/scripts/subscribe.php" method="post" novalidate>
+        <form id="newsletterForm" action="scripts/subscribe.php" method="post" novalidate>
             <label for="newsletterEmail">Email address</label>
             <input type="email" id="newsletterEmail" name="email" placeholder="you@example.com" required>
 

@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $feedbackClass = 'notice error';
     } else {
         add_to_cart($product['id'], $quantity);
-        $feedbackMessage = 'Added to your cart! <a href="/checkout.php">Review cart</a>';
+        $feedbackMessage = 'Added to your cart! <a href="checkout.php">Review cart</a>';
     }
 }
 
@@ -54,7 +54,7 @@ if (!empty($product['spec_json'])) {
         <?php if ($feedbackMessage): ?>
             <div class="<?= $feedbackClass ?>" style="margin: 1rem 0;"><?= $feedbackMessage ?></div>
         <?php endif; ?>
-        <form method="post" class="form-grid" action="/product.php?id=<?= $product['id'] ?>">
+        <form method="post" class="form-grid" action="product.php?id=<?= $product['id'] ?>">
             <label for="quantity">Quantity</label>
             <input type="number" name="quantity" id="quantity" min="1" max="<?= (int) $product['stock'] ?>" value="1" required>
             <button type="submit" class="btn-primary">Add to cart</button>
