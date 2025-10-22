@@ -1,5 +1,5 @@
-</main>
-<footer class="site-footer">
+        </main>
+        <footer class="site-footer">
     <div class="container footer-grid">
         <div>
             <h3>About TechMart</h3>
@@ -19,7 +19,9 @@
         </div>
     </div>
     <p class="footer-copy">&copy; <?= date('Y') ?> <?= SITE_NAME ?>. All rights reserved.</p>
-</footer>
+        </footer>
+    </div>
+</div>
 <div class="newsletter-modal" id="newsletterModal" role="dialog" aria-modal="true" aria-labelledby="newsletterTitle" hidden>
     <div class="modal-content">
         <button class="modal-close" type="button" data-close-modal aria-label="Close newsletter sign-up">&times;</button>
