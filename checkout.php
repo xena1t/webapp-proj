@@ -65,16 +65,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         if ($item['quantity'] > $item['stock']) {
                             throw new RuntimeException('Insufficient stock for ' . $item['name']);
                         }
+
+                        $stockStmt->execute([
+                            'quantity' => $item['quantity'],
+                            'product_id' => $item['id'],
+                        ]);
+
+                        if ($stockStmt->rowCount() === 0) {
+                            throw new RuntimeException('Unable to reserve stock for ' . $item['name'] . '. Please update your cart and try again.');
+                        }
+
                         $itemStmt->execute([
                             'order_id' => $orderId,
                             'product_id' => $item['id'],
                             'quantity' => $item['quantity'],
                             'price' => $item['price'],
-                        ]);
-
-                        $stockStmt->execute([
-                            'quantity' => $item['quantity'],
-                            'product_id' => $item['id'],
                         ]);
                     }
 
