@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach ($_POST['quantities'] as $productId => $quantity) {
             update_cart_item((int) $productId, (int) $quantity);
         }
-        header('Location: /checkout.php');
+        header('Location: checkout.php');
         exit;
     }
 
@@ -96,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     send_order_confirmation($orderSuccess, $cartItems);
                     clear_cart();
 
-                    header('Location: /order-status.php?order=' . $orderId . '&email=' . urlencode($email));
+                    header('Location: order-status.php?order=' . $orderId . '&email=' . urlencode($email));
                     exit;
                 } catch (Throwable $exception) {
                     if ($pdo->inTransaction()) {

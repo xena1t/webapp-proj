@@ -50,15 +50,37 @@ if (!empty($product['spec_json'])) {
         <h1><?= htmlspecialchars($product['name']) ?></h1>
         <p><?= nl2br(htmlspecialchars($product['description'])) ?></p>
         <div class="product-price"><?= format_price((float) $product['price']) ?></div>
-        <p>Stock remaining: <?= (int) $product['stock'] ?></p>
+        <p>
+            <?php if ((int)$product['stock'] > 0): ?>
+                Stock remaining: <?= (int)$product['stock'] ?>
+            <?php else: ?>
+                <span class="text-danger"><strong>Sold Out</strong></span>
+            <?php endif; ?>
+        </p>
+
         <?php if ($feedbackMessage): ?>
             <div class="<?= $feedbackClass ?>" style="margin: 1rem 0;"><?= $feedbackMessage ?></div>
         <?php endif; ?>
-        <form method="post" class="form-grid" action="product.php?id=<?= $product['id'] ?>">
-            <label for="quantity">Quantity</label>
-            <input type="number" name="quantity" id="quantity" min="1" max="<?= (int) $product['stock'] ?>" value="1" required>
-            <button type="submit" class="btn-primary">Add to cart</button>
-        </form>
+
+        <?php if ((int)$product['stock'] > 0): ?>
+            <form method="post" class="form-grid" action="product.php?id=<?= $product['id'] ?>">
+                <label for="quantity">Quantity</label>
+                <input type="number"
+                    name="quantity"
+                    id="quantity"
+                    min="1"
+                    max="<?= (int)$product['stock'] ?>"
+                    value="1"
+                    required>
+                <button type="submit" class="btn-primary">Add to cart</button>
+            </form>
+        <?php else: ?>
+            <form class="form-grid">
+                <input type="number" value="0" disabled>
+                <button type="button" class="btn-secondary" disabled>Sold Out</button>
+            </form>
+        <?php endif; ?>
+
     </div>
 </section>
 

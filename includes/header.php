@@ -7,6 +7,7 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,49 +15,55 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
     <link rel="stylesheet" href="assets/css/main.css">
     <script defer src="assets/js/app.js"></script>
 </head>
+
 <body>
-<div class="page-shell">
-    <aside class="sidebar" id="sidebar" aria-label="Primary">
-        <div class="sidebar-inner">
-            <a class="logo" href="index.php">
-                <span class="logo-mark" aria-hidden="true">◎</span>
-                <span>TechMart</span>
-            </a>
-            <nav class="sidebar-nav" aria-label="Main navigation">
-                <ul>
-                    <li><a class="sidebar-link <?= $currentPage === 'index.php' ? 'active' : '' ?>" href="index.php">Home</a></li>
-                    <li class="sidebar-dropdown">
-                        <button class="sidebar-label" type="button" aria-expanded="false">
-                            <span>Shop by category</span>
-                            <span class="chevron" aria-hidden="true">▾</span>
-                        </button>
-                        <ul class="sidebar-submenu">
-                            <?php foreach ($categories as $category): ?>
-                                <li><a class="sidebar-sublink" href="products.php?category=<?= urlencode($category) ?>"><?= htmlspecialchars($category) ?></a></li>
-                            <?php endforeach; ?>
-                            <li><a class="sidebar-sublink" href="products.php">All Products</a></li>
-                        </ul>
-                    </li>
-                    <li><a class="sidebar-link <?= $currentPage === 'products.php' ? 'active' : '' ?>" href="products.php">Shop</a></li>
-                    <li><a class="sidebar-link <?= $currentPage === 'checkout.php' ? 'active' : '' ?>" href="checkout.php">Cart</a></li>
-                    <li><a class="sidebar-link <?= $currentPage === 'order-status.php' ? 'active' : '' ?>" href="order-status.php">Order Status</a></li>
-                </ul>
-            </nav>
-            <div class="sidebar-cta">
-                <p>Get early access to drops, restocks, and insider guides.</p>
-                <button class="btn-secondary sidebar-newsletter" type="button" data-open-modal>Join the newsletter</button>
+    <div class="page-shell">
+        <aside class="sidebar" id="sidebar" aria-label="Primary">
+            <div class="sidebar-inner">
+                <a class="logo" href="index.php">
+                    <span class="logo-mark" aria-hidden="true">◎</span>
+                    <span>TechMart</span>
+                </a>
+                <nav class="sidebar-nav" aria-label="Main navigation">
+                    <ul>
+                        <li class="sidebar-dropdown">
+                            <a class="sidebar-link <?= $currentPage === 'products.php' ? 'active' : '' ?>"
+                                href="products.php"
+                                aria-expanded="false">
+                                <span>Shop</span>
+                                <span class="chevron" aria-hidden="true">▾</span>
+                            </a>
+                            <ul class="sidebar-submenu">
+                                <?php foreach ($categories as $category): ?>
+                                    <li>
+                                        <a class="sidebar-sublink"
+                                            href="products.php?category=<?= urlencode($category) ?>">
+                                            <?= htmlspecialchars($category) ?>
+                                        </a>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </li>
+
+                        <li><a class="sidebar-link <?= $currentPage === 'checkout.php' ? 'active' : '' ?>" href="checkout.php">Cart</a></li>
+                        <li><a class="sidebar-link <?= $currentPage === 'order-status.php' ? 'active' : '' ?>" href="order-status.php">Order Status</a></li>
+                    </ul>
+                </nav>
+                <div class="sidebar-cta">
+                    <p>Get early access to drops, restocks, and insider guides.</p>
+                    <button class="btn-secondary sidebar-newsletter" type="button" data-open-modal>Join the newsletter</button>
+                </div>
             </div>
-        </div>
-    </aside>
-    <div class="content-column">
-        <header class="top-bar">
-            <button class="sidebar-toggle" type="button" aria-controls="sidebar" aria-expanded="false">
-                <span class="sr-only">Toggle navigation</span>
-                ☰
-            </button>
-            <div class="top-links">
-                <a class="top-link" href="checkout.php">Checkout</a>
-                <a class="top-link" href="order-status.php">Track order</a>
-            </div>
-        </header>
-        <main class="site-main">
+        </aside>
+        <div class="content-column">
+            <header class="top-bar">
+                <button class="sidebar-toggle" type="button" aria-controls="sidebar" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    ☰
+                </button>
+                <div class="top-links">
+                    <a class="top-link" href="checkout.php">Checkout</a>
+                    <a class="top-link" href="order-status.php">Track order</a>
+                </div>
+            </header>
+            <main class="site-main">

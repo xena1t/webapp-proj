@@ -185,7 +185,8 @@ document.querySelectorAll('.sidebar a').forEach((link) => {
 });
 
 document.querySelectorAll('.sidebar-dropdown').forEach((dropdown) => {
-    const trigger = dropdown.querySelector('.sidebar-label');
+    // 🔹 Support both old (.sidebar-label) and new (.sidebar-link) triggers
+    const trigger = dropdown.querySelector('.sidebar-label, .sidebar-link');
     const submenu = dropdown.querySelector('.sidebar-submenu');
     const supportsHover = window.matchMedia('(hover: hover)').matches;
 
@@ -201,6 +202,7 @@ document.querySelectorAll('.sidebar-dropdown').forEach((dropdown) => {
     };
 
     setExpanded(false);
+    if (submenu) submenu.hidden = false;
 
     if (trigger) {
         if (supportsHover) {
@@ -209,9 +211,12 @@ document.querySelectorAll('.sidebar-dropdown').forEach((dropdown) => {
         }
 
         trigger.addEventListener('click', (event) => {
-            event.preventDefault();
-            const expanded = trigger.getAttribute('aria-expanded') === 'true';
-            setExpanded(!expanded);
+            // 🔹 Only toggle if this link has a submenu (prevents blocking real links)
+            if (submenu) {
+                event.preventDefault(); // prevent immediate navigation
+                const expanded = trigger.getAttribute('aria-expanded') === 'true';
+                setExpanded(!expanded);
+            }
         });
 
         trigger.addEventListener('keydown', (event) => {
