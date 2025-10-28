@@ -188,7 +188,10 @@ document.querySelectorAll('.sidebar-dropdown').forEach((dropdown) => {
     // 🔹 Support both old (.sidebar-label) and new (.sidebar-link) triggers
     const trigger = dropdown.querySelector('.sidebar-label, .sidebar-link');
     const submenu = dropdown.querySelector('.sidebar-submenu');
-    const supportsHover = window.matchMedia('(hover: hover)').matches;
+    const canCheckHover = typeof window !== 'undefined' && typeof window.matchMedia === 'function';
+    const hoverMedia = canCheckHover ? window.matchMedia('(hover: hover)') : null;
+    const supportsAnyHover = canCheckHover ? window.matchMedia('(any-hover: hover)') : null;
+    const supportsHover = Boolean((hoverMedia && hoverMedia.matches) || (supportsAnyHover && supportsAnyHover.matches));
 
     const setExpanded = (expanded) => {
         if (trigger) {
@@ -197,17 +200,32 @@ document.querySelectorAll('.sidebar-dropdown').forEach((dropdown) => {
         if (submenu) {
             submenu.hidden = !expanded;
             submenu.setAttribute('aria-hidden', String(!expanded));
+            submenu.style.display = expanded ? 'flex' : 'none';
         }
         dropdown.classList.toggle('open', expanded);
     };
 
     setExpanded(false);
-    if (submenu) submenu.hidden = false;
 
     if (trigger) {
         if (supportsHover) {
-            dropdown.addEventListener('mouseenter', () => setExpanded(true));
-            dropdown.addEventListener('mouseleave', () => setExpanded(false));
+            const handleMouseEnter = (event) => {
+                if (event.pointerType && event.pointerType !== 'mouse') return;
+                setExpanded(true);
+            };
+
+            const handleMouseLeave = (event) => {
+                if (event.pointerType && event.pointerType !== 'mouse') return;
+                setExpanded(false);
+            };
+
+            if (window.PointerEvent) {
+                dropdown.addEventListener('pointerenter', handleMouseEnter);
+                dropdown.addEventListener('pointerleave', handleMouseLeave);
+            } else {
+                dropdown.addEventListener('mouseenter', () => setExpanded(true));
+                dropdown.addEventListener('mouseleave', () => setExpanded(false));
+            }
         }
 
         trigger.addEventListener('click', (event) => {
