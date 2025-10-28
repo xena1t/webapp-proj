@@ -185,103 +185,86 @@ document.querySelectorAll('.sidebar a').forEach((link) => {
 });
 
 document.querySelectorAll('.sidebar-dropdown').forEach((dropdown) => {
-    // 🔹 Support both old (.sidebar-label) and new (.sidebar-link) triggers
     const trigger = dropdown.querySelector('.sidebar-label, .sidebar-link');
     const submenu = dropdown.querySelector('.sidebar-submenu');
+
+    if (!trigger || !submenu) return;
+
     const canCheckHover = typeof window !== 'undefined' && typeof window.matchMedia === 'function';
     const hoverMedia = canCheckHover ? window.matchMedia('(hover: hover)') : null;
     const supportsAnyHover = canCheckHover ? window.matchMedia('(any-hover: hover)') : null;
     const supportsHover = Boolean((hoverMedia && hoverMedia.matches) || (supportsAnyHover && supportsAnyHover.matches));
 
     const setExpanded = (expanded) => {
-        if (trigger) {
-            trigger.setAttribute('aria-expanded', String(expanded));
-        }
-        if (submenu) {
-            submenu.hidden = !expanded;
-            submenu.setAttribute('aria-hidden', String(!expanded));
-            submenu.style.display = expanded ? 'flex' : 'none';
-        }
+        trigger.setAttribute('aria-expanded', String(expanded));
+        submenu.setAttribute('aria-hidden', String(!expanded));
         dropdown.classList.toggle('open', expanded);
     };
 
     setExpanded(false);
 
-    if (trigger) {
-        if (supportsHover) {
-            const handleMouseEnter = (event) => {
-                if (event.pointerType && event.pointerType !== 'mouse') return;
-                setExpanded(true);
-            };
+    if (supportsHover) {
+        dropdown.addEventListener('mouseenter', () => setExpanded(true));
+        dropdown.addEventListener('mouseleave', () => setExpanded(false));
 
-            const handleMouseLeave = (event) => {
-                if (event.pointerType && event.pointerType !== 'mouse') return;
+        trigger.addEventListener('focus', () => setExpanded(true));
+        dropdown.addEventListener('focusout', (event) => {
+            if (!dropdown.contains(event.relatedTarget)) {
                 setExpanded(false);
-            };
-
-            if (window.PointerEvent) {
-                dropdown.addEventListener('pointerenter', handleMouseEnter);
-                dropdown.addEventListener('pointerleave', handleMouseLeave);
-            } else {
-                dropdown.addEventListener('mouseenter', () => setExpanded(true));
-                dropdown.addEventListener('mouseleave', () => setExpanded(false));
             }
-        }
+        });
+    } else {
+        const closeOnOutsideClick = (event) => {
+            if (!dropdown.contains(event.target)) {
+                setExpanded(false);
+                document.removeEventListener('click', closeOnOutsideClick);
+            }
+        };
 
         trigger.addEventListener('click', (event) => {
-            if (!submenu) return;
+            const expanded = dropdown.classList.contains('open');
 
-            // Allow standard navigation on devices that support hover (desktop).
-            if (supportsHover) {
-                setExpanded(false);
-                return;
-            }
-
-            const expanded = trigger.getAttribute('aria-expanded') === 'true';
-
-            // First tap opens the menu; second tap follows the link to products.php.
             if (!expanded) {
                 event.preventDefault();
                 setExpanded(true);
+                document.addEventListener('click', closeOnOutsideClick);
             } else {
                 setExpanded(false);
+                document.removeEventListener('click', closeOnOutsideClick);
             }
         });
 
         trigger.addEventListener('keydown', (event) => {
-            if (!submenu) return;
-
-            const expanded = trigger.getAttribute('aria-expanded') === 'true';
+            const expanded = dropdown.classList.contains('open');
 
             if (event.key === ' ' || event.key === 'Spacebar') {
                 event.preventDefault();
                 setExpanded(!expanded);
+                if (!expanded) {
+                    document.addEventListener('click', closeOnOutsideClick);
+                } else {
+                    document.removeEventListener('click', closeOnOutsideClick);
+                }
             } else if (event.key === 'Enter') {
                 if (!expanded) {
                     event.preventDefault();
                     setExpanded(true);
+                    document.addEventListener('click', closeOnOutsideClick);
                 } else {
                     setExpanded(false);
+                    document.removeEventListener('click', closeOnOutsideClick);
                 }
             }
         });
-
-        trigger.addEventListener('blur', (event) => {
-            if (!dropdown.contains(event.relatedTarget)) {
-                setExpanded(false);
-            }
-        });
     }
 
-    if (submenu) {
-        submenu.querySelectorAll('a').forEach((link) => {
-            link.addEventListener('focus', () => setExpanded(true));
-        });
+    submenu.querySelectorAll('a').forEach((link) => {
+        link.addEventListener('focus', () => setExpanded(true));
+    });
 
-        submenu.addEventListener('focusout', (event) => {
-            if (!dropdown.contains(event.relatedTarget)) {
-                setExpanded(false);
-            }
-        });
-    }
+    submenu.addEventListener('focusout', (event) => {
+        if (!dropdown.contains(event.relatedTarget)) {
+            setExpanded(false);
+        }
+    });
 });
