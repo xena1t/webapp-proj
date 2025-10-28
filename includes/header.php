@@ -33,7 +33,7 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                                 <span>Shop</span>
                                 <span class="chevron" aria-hidden="true">▾</span>
                             </a>
-                            <ul class="sidebar-submenu">
+                            <ul class="sidebar-submenu" hidden>
                                 <?php foreach ($categories as $category): ?>
                                     <li>
                                         <a class="sidebar-sublink"

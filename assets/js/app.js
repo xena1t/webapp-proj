@@ -193,12 +193,14 @@ document.querySelectorAll('.sidebar-dropdown').forEach((dropdown) => {
     const openDropdown = () => {
         dropdown.classList.add('open');
         trigger.setAttribute('aria-expanded', 'true');
+        submenu.hidden = false;
         submenu.setAttribute('aria-hidden', 'false');
     };
 
     const closeDropdown = () => {
         dropdown.classList.remove('open');
         trigger.setAttribute('aria-expanded', 'false');
+        submenu.hidden = true;
         submenu.setAttribute('aria-hidden', 'true');
     };
 
