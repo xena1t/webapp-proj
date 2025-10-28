@@ -185,64 +185,25 @@ document.querySelectorAll('.sidebar a').forEach((link) => {
 });
 
 document.querySelectorAll('.sidebar-dropdown').forEach((dropdown) => {
-    // 🔹 Support both old (.sidebar-label) and new (.sidebar-link) triggers
     const trigger = dropdown.querySelector('.sidebar-label, .sidebar-link');
     const submenu = dropdown.querySelector('.sidebar-submenu');
-    const supportsHover = window.matchMedia('(hover: hover)').matches;
 
-    const setExpanded = (expanded) => {
-        if (trigger) {
-            trigger.setAttribute('aria-expanded', String(expanded));
-        }
-        if (submenu) {
-            submenu.hidden = !expanded;
-            submenu.setAttribute('aria-hidden', String(!expanded));
-        }
-        dropdown.classList.toggle('open', expanded);
+    if (!trigger || !submenu) return;
+
+    const openDropdown = () => {
+        dropdown.classList.add('open');
+        trigger.setAttribute('aria-expanded', 'true');
+        submenu.setAttribute('aria-hidden', 'false');
     };
 
-    setExpanded(false);
-    if (submenu) submenu.hidden = false;
+    const closeDropdown = () => {
+        dropdown.classList.remove('open');
+        trigger.setAttribute('aria-expanded', 'false');
+        submenu.setAttribute('aria-hidden', 'true');
+    };
 
-    if (trigger) {
-        if (supportsHover) {
-            dropdown.addEventListener('mouseenter', () => setExpanded(true));
-            dropdown.addEventListener('mouseleave', () => setExpanded(false));
-        }
+    closeDropdown();
 
-        trigger.addEventListener('click', (event) => {
-            // 🔹 Only toggle if this link has a submenu (prevents blocking real links)
-            if (submenu) {
-                event.preventDefault(); // prevent immediate navigation
-                const expanded = trigger.getAttribute('aria-expanded') === 'true';
-                setExpanded(!expanded);
-            }
-        });
-
-        trigger.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                const expanded = trigger.getAttribute('aria-expanded') === 'true';
-                setExpanded(!expanded);
-            }
-        });
-
-        trigger.addEventListener('blur', (event) => {
-            if (!dropdown.contains(event.relatedTarget)) {
-                setExpanded(false);
-            }
-        });
-    }
-
-    if (submenu) {
-        submenu.querySelectorAll('a').forEach((link) => {
-            link.addEventListener('focus', () => setExpanded(true));
-        });
-
-        submenu.addEventListener('focusout', (event) => {
-            if (!dropdown.contains(event.relatedTarget)) {
-                setExpanded(false);
-            }
-        });
-    }
+    dropdown.addEventListener('mouseenter', openDropdown);
+    dropdown.addEventListener('mouseleave', closeDropdown);
 });
