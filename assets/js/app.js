@@ -211,19 +211,40 @@ document.querySelectorAll('.sidebar-dropdown').forEach((dropdown) => {
         }
 
         trigger.addEventListener('click', (event) => {
-            // 🔹 Only toggle if this link has a submenu (prevents blocking real links)
-            if (submenu) {
-                event.preventDefault(); // prevent immediate navigation
-                const expanded = trigger.getAttribute('aria-expanded') === 'true';
-                setExpanded(!expanded);
+            if (!submenu) return;
+
+            // Allow standard navigation on devices that support hover (desktop).
+            if (supportsHover) {
+                setExpanded(false);
+                return;
+            }
+
+            const expanded = trigger.getAttribute('aria-expanded') === 'true';
+
+            // First tap opens the menu; second tap follows the link to products.php.
+            if (!expanded) {
+                event.preventDefault();
+                setExpanded(true);
+            } else {
+                setExpanded(false);
             }
         });
 
         trigger.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
+            if (!submenu) return;
+
+            const expanded = trigger.getAttribute('aria-expanded') === 'true';
+
+            if (event.key === ' ' || event.key === 'Spacebar') {
                 event.preventDefault();
-                const expanded = trigger.getAttribute('aria-expanded') === 'true';
                 setExpanded(!expanded);
+            } else if (event.key === 'Enter') {
+                if (!expanded) {
+                    event.preventDefault();
+                    setExpanded(true);
+                } else {
+                    setExpanded(false);
+                }
             }
         });
 
