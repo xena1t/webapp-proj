@@ -185,64 +185,86 @@ document.querySelectorAll('.sidebar a').forEach((link) => {
 });
 
 document.querySelectorAll('.sidebar-dropdown').forEach((dropdown) => {
-    // 🔹 Support both old (.sidebar-label) and new (.sidebar-link) triggers
     const trigger = dropdown.querySelector('.sidebar-label, .sidebar-link');
     const submenu = dropdown.querySelector('.sidebar-submenu');
-    const supportsHover = window.matchMedia('(hover: hover)').matches;
+
+    if (!trigger || !submenu) return;
+
+    const canCheckHover = typeof window !== 'undefined' && typeof window.matchMedia === 'function';
+    const hoverMedia = canCheckHover ? window.matchMedia('(hover: hover)') : null;
+    const supportsAnyHover = canCheckHover ? window.matchMedia('(any-hover: hover)') : null;
+    const supportsHover = Boolean((hoverMedia && hoverMedia.matches) || (supportsAnyHover && supportsAnyHover.matches));
 
     const setExpanded = (expanded) => {
-        if (trigger) {
-            trigger.setAttribute('aria-expanded', String(expanded));
-        }
-        if (submenu) {
-            submenu.hidden = !expanded;
-            submenu.setAttribute('aria-hidden', String(!expanded));
-        }
+        trigger.setAttribute('aria-expanded', String(expanded));
+        submenu.setAttribute('aria-hidden', String(!expanded));
         dropdown.classList.toggle('open', expanded);
     };
 
     setExpanded(false);
-    if (submenu) submenu.hidden = false;
 
-    if (trigger) {
-        if (supportsHover) {
-            dropdown.addEventListener('mouseenter', () => setExpanded(true));
-            dropdown.addEventListener('mouseleave', () => setExpanded(false));
-        }
+    if (supportsHover) {
+        dropdown.addEventListener('mouseenter', () => setExpanded(true));
+        dropdown.addEventListener('mouseleave', () => setExpanded(false));
+
+        trigger.addEventListener('focus', () => setExpanded(true));
+        dropdown.addEventListener('focusout', (event) => {
+            if (!dropdown.contains(event.relatedTarget)) {
+                setExpanded(false);
+            }
+        });
+    } else {
+        const closeOnOutsideClick = (event) => {
+            if (!dropdown.contains(event.target)) {
+                setExpanded(false);
+                document.removeEventListener('click', closeOnOutsideClick);
+            }
+        };
 
         trigger.addEventListener('click', (event) => {
-            // 🔹 Only toggle if this link has a submenu (prevents blocking real links)
-            if (submenu) {
-                event.preventDefault(); // prevent immediate navigation
-                const expanded = trigger.getAttribute('aria-expanded') === 'true';
-                setExpanded(!expanded);
+            const expanded = dropdown.classList.contains('open');
+
+            if (!expanded) {
+                event.preventDefault();
+                setExpanded(true);
+                document.addEventListener('click', closeOnOutsideClick);
+            } else {
+                setExpanded(false);
+                document.removeEventListener('click', closeOnOutsideClick);
             }
         });
 
         trigger.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
+            const expanded = dropdown.classList.contains('open');
+
+            if (event.key === ' ' || event.key === 'Spacebar') {
                 event.preventDefault();
-                const expanded = trigger.getAttribute('aria-expanded') === 'true';
                 setExpanded(!expanded);
-            }
-        });
-
-        trigger.addEventListener('blur', (event) => {
-            if (!dropdown.contains(event.relatedTarget)) {
-                setExpanded(false);
-            }
-        });
-    }
-
-    if (submenu) {
-        submenu.querySelectorAll('a').forEach((link) => {
-            link.addEventListener('focus', () => setExpanded(true));
-        });
-
-        submenu.addEventListener('focusout', (event) => {
-            if (!dropdown.contains(event.relatedTarget)) {
-                setExpanded(false);
+                if (!expanded) {
+                    document.addEventListener('click', closeOnOutsideClick);
+                } else {
+                    document.removeEventListener('click', closeOnOutsideClick);
+                }
+            } else if (event.key === 'Enter') {
+                if (!expanded) {
+                    event.preventDefault();
+                    setExpanded(true);
+                    document.addEventListener('click', closeOnOutsideClick);
+                } else {
+                    setExpanded(false);
+                    document.removeEventListener('click', closeOnOutsideClick);
+                }
             }
         });
     }
+
+    submenu.querySelectorAll('a').forEach((link) => {
+        link.addEventListener('focus', () => setExpanded(true));
+    });
+
+    submenu.addEventListener('focusout', (event) => {
+        if (!dropdown.contains(event.relatedTarget)) {
+            setExpanded(false);
+        }
+    });
 });
