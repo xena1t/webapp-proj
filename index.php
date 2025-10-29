@@ -3,53 +3,27 @@ $pageTitle = 'Home';
 require_once __DIR__ . '/includes/header.php';
 $featuredProducts = fetch_featured_products();
 $categories = fetch_categories();
-$activeMember = get_current_member();
 ?>
 <section class="container hero">
-    <div class="hero-copy">
-        <span class="badge"><?= $activeMember ? 'Member exclusives unlocked' : 'Just landed' ?></span>
-        <h1>
-            <?php if ($activeMember): ?>
-                Ready for your next upgrade, <?= htmlspecialchars($activeMember['name']) ?>?
-            <?php else: ?>
-                Elevate your setup with cutting-edge tech.
-            <?php endif; ?>
-        </h1>
-        <p>
-            <?php if ($activeMember): ?>
-                Explore fresh drops curated for insiders—your membership keeps you ahead on limited-stock launches and concierge-level support.
-            <?php else: ?>
-                Discover curated laptops, custom PC components, and immersive peripherals—handpicked by enthusiasts for performance seekers.
-            <?php endif; ?>
-        </p>
+    <div>
+        <span class="badge">New arrivals</span>
+        <h1>Elevate your setup with cutting-edge tech.</h1>
+        <p>Discover curated laptops, custom PC components, and immersive peripherals—handpicked by enthusiasts for performance seekers.</p>
         <div class="hero-actions">
             <a class="btn-primary" href="products.php">Shop the collection</a>
-            <a class="btn-secondary btn-scroll" href="#catalog">
-                <span>Browse the latest drops</span>
-                <span aria-hidden="true">↓</span>
-            </a>
-            <?php if ($activeMember): ?>
-                <a class="btn-ghost" href="logout.php">Log out</a>
-            <?php else: ?>
-                <a class="btn-ghost" href="login.php">Member login</a>
-            <?php endif; ?>
+            <a class="btn-secondary" href="#insights">Explore categories</a>
         </div>
-        <div class="hero-note">
-            <?php if ($activeMember): ?>
-                <span class="hero-note-icon" aria-hidden="true">🔒</span>
-                <p>Members unlock early-bird queueing, private bundles, and priority concierge help on every order.</p>
-            <?php else: ?>
-                <span class="hero-note-icon" aria-hidden="true">★</span>
-                <p>Trusted by over 25,000 creators worldwide for reliable gear, tailored support, and lightning-fast delivery.</p>
-            <?php endif; ?>
+        <div class="highlight">
+            <div class="highlight-icon">★</div>
+            <p>Trusted by over 25,000 creators worldwide for reliable gear, tailored support, and lightning-fast delivery.</p>
         </div>
     </div>
-    <div class="hero-media">
+    <div>
         <img src="https://images.unsplash.com/photo-1618005198900-89f8bd07c570?auto=format&fit=crop&w=900&q=80" alt="Collection of premium electronics">
     </div>
 </section>
 
-<section class="container" id="catalog" style="margin-top: 4rem;">
+<section class="container" id="insights" style="margin-top: 4rem;">
     <h2 class="section-title">Featured drops</h2>
     <p class="section-subtitle">Handpicked devices engineered for creative pros and competitive gamers.</p>
     <div class="cards-grid">
