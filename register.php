@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/includes/functions.php'; // must set $pdo and start_session()
+require_once __DIR__ . '/includes/functions.php';
 $pageTitle = 'Register';
 require_once __DIR__ . '/includes/header.php';
 
@@ -23,16 +23,23 @@ if (isset($_SESSION['user'])) {
         <input type="password" id="password" name="password" required class="input" placeholder="••••••••">
 
         <label for="confirm_password">Confirm Password</label>
-        <input type="password" id="confirm_password" name="confirm_password" required class="input" placeholder="••••••••">
+        <input type="password" id="confirm_password" name="confirm_password" required class="input"
+            placeholder="••••••••">
 
-        <br/>
+        <br />
         <button type="submit" class="btn-primary" style="margin-top:1rem;">Register</button>
 
-        <?php if (!empty($_SESSION['flash_error'])): ?>
-            <p class="error" style="color:#c00;margin-top:1rem;">
-                <?= htmlspecialchars($_SESSION['flash_error']) ?>
-            </p>
-            <?php unset($_SESSION['flash_error']); endif; ?>
+        <?php if (!empty($_SESSION['flash_errors'])): ?>
+            <div class="error-box">
+                <ul>
+                    <?php foreach ($_SESSION['flash_errors'] as $err): ?>
+                        <li><?= htmlspecialchars($err) ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+            <?php unset($_SESSION['flash_errors']); ?>
+        <?php endif; ?>
+
     </form>
 </section>
 

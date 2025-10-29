@@ -969,3 +969,17 @@ input[type="email"]:focus {
 .login-link:hover {
     color: #005ecb;
 }
+/* FOR THE REGISTER.PHP PAGE ERROR BOX AT THE END  */
+.error-box {
+    background-color: #ffecec;
+    border: 1px solid #ffb3b3;
+    color: #a00;
+    padding: 10px 16px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+.error-box ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
