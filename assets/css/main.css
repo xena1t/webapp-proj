@@ -12,10 +12,6 @@
     --shadow-soft: 0 28px 56px rgba(15, 23, 42, 0.12);
 }
 
-html {
-    scroll-behavior: smooth;
-}
-
 * {
     box-sizing: border-box;
 }
@@ -249,19 +245,6 @@ a:focus {
     color: var(--text-secondary);
 }
 
-.top-link-muted {
-    border: none;
-    padding: 0;
-    color: var(--text-secondary);
-    cursor: default;
-}
-
-.top-link-muted:hover,
-.top-link-muted:focus {
-    color: var(--text-secondary);
-    border-color: var(--border-color);
-}
-
 .top-link:hover,
 .top-link:focus {
     color: var(--accent);
@@ -287,14 +270,6 @@ a:focus {
     overflow: hidden;
 }
 
-.hero-copy {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 1.75rem;
-}
-
 .hero::after {
     content: '';
     position: absolute;
@@ -316,13 +291,6 @@ a:focus {
     color: var(--text-secondary);
     font-size: 1.1rem;
     line-height: 1.7;
-}
-
-.hero-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.85rem;
-    align-items: center;
 }
 
 .btn-primary,
@@ -348,68 +316,6 @@ a:focus {
     background: rgba(15, 139, 255, 0.08);
     color: var(--accent);
     border: 1px solid rgba(15, 139, 255, 0.16);
-}
-
-.btn-scroll span:last-child {
-    font-size: 1.2rem;
-    transform: translateY(1px);
-}
-
-.btn-ghost {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.75rem 1.5rem;
-    border-radius: 999px;
-    border: 1px solid transparent;
-    color: var(--text-secondary);
-    font-weight: 600;
-    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
-}
-
-.btn-ghost:hover,
-.btn-ghost:focus {
-    color: var(--accent);
-    border-color: rgba(15, 139, 255, 0.18);
-    background: rgba(15, 139, 255, 0.06);
-}
-
-.hero-note {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1.1rem 1.4rem;
-    border-radius: var(--radius-lg);
-    border: 1px solid rgba(15, 23, 42, 0.08);
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(6px);
-    max-width: 480px;
-}
-
-.hero-note p {
-    margin: 0;
-    color: var(--text-secondary);
-    line-height: 1.6;
-}
-
-.hero-note-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    background: rgba(15, 139, 255, 0.12);
-    font-size: 1.2rem;
-}
-
-.hero-media {
-    position: relative;
-    z-index: 0;
-}
-
-.hero-media img {
-    border-radius: 28px;
-    box-shadow: var(--shadow-soft);
 }
 
 .btn-primary:hover,
@@ -559,44 +465,6 @@ a:focus {
 .form-grid {
     display: grid;
     gap: 1.2rem;
-}
-
-.auth-section {
-    display: flex;
-    justify-content: center;
-    margin-top: 3rem;
-}
-
-.auth-card {
-    width: min(420px, 100%);
-    background: var(--card-bg);
-    padding: 2.75rem 2.5rem;
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-color);
-    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.08);
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.auth-card h1 {
-    margin: 0;
-}
-
-.auth-intro {
-    margin: 0;
-    color: var(--text-secondary);
-    line-height: 1.7;
-}
-
-.auth-form button {
-    justify-self: flex-start;
-}
-
-.auth-hint {
-    margin: 0;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
 }
 
 label {
@@ -841,10 +709,6 @@ input[type="radio"] {
 
     .modal-content {
         padding: 2rem;
-    }
-
-    .auth-card {
-        padding: 2.25rem 1.75rem;
     }
 }
 .notice.error {
