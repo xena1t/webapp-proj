@@ -5,6 +5,7 @@ const modalCloseButtons = document.querySelectorAll('[data-close-modal]');
 const openModalTriggers = document.querySelectorAll('[data-open-modal]');
 const newsletterStorageKey = 'techmart_newsletter_dismissed';
 let modalHasOpened = false;
+let autoOpenScheduled = false;
 
 function hasDismissedNewsletter() {
     try {
@@ -50,9 +51,25 @@ function closeModal() {
 if (modal) {
     modal.setAttribute('aria-hidden', modal.hidden ? 'true' : 'false');
 
-    window.addEventListener('load', () => {
-        setTimeout(() => openModal({ auto: true }), 1000);
-    });
+    const scheduleAutoOpen = () => {
+        if (autoOpenScheduled) {
+            return;
+        }
+
+        autoOpenScheduled = true;
+
+        const schedule = window.requestAnimationFrame || ((callback) => setTimeout(callback, 0));
+
+        schedule(() => {
+            openModal({ auto: true });
+        });
+    };
+
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        scheduleAutoOpen();
+    } else {
+        document.addEventListener('DOMContentLoaded', scheduleAutoOpen, { once: true });
+    }
 
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && !modal.hidden) {
@@ -185,64 +202,27 @@ document.querySelectorAll('.sidebar a').forEach((link) => {
 });
 
 document.querySelectorAll('.sidebar-dropdown').forEach((dropdown) => {
-    // 🔹 Support both old (.sidebar-label) and new (.sidebar-link) triggers
     const trigger = dropdown.querySelector('.sidebar-label, .sidebar-link');
     const submenu = dropdown.querySelector('.sidebar-submenu');
-    const supportsHover = window.matchMedia('(hover: hover)').matches;
 
-    const setExpanded = (expanded) => {
-        if (trigger) {
-            trigger.setAttribute('aria-expanded', String(expanded));
-        }
-        if (submenu) {
-            submenu.hidden = !expanded;
-            submenu.setAttribute('aria-hidden', String(!expanded));
-        }
-        dropdown.classList.toggle('open', expanded);
+    if (!trigger || !submenu) return;
+
+    const openDropdown = () => {
+        dropdown.classList.add('open');
+        trigger.setAttribute('aria-expanded', 'true');
+        submenu.hidden = false;
+        submenu.setAttribute('aria-hidden', 'false');
     };
 
-    setExpanded(false);
-    if (submenu) submenu.hidden = false;
+    const closeDropdown = () => {
+        dropdown.classList.remove('open');
+        trigger.setAttribute('aria-expanded', 'false');
+        submenu.hidden = true;
+        submenu.setAttribute('aria-hidden', 'true');
+    };
 
-    if (trigger) {
-        if (supportsHover) {
-            dropdown.addEventListener('mouseenter', () => setExpanded(true));
-            dropdown.addEventListener('mouseleave', () => setExpanded(false));
-        }
+    closeDropdown();
 
-        trigger.addEventListener('click', (event) => {
-            // 🔹 Only toggle if this link has a submenu (prevents blocking real links)
-            if (submenu) {
-                event.preventDefault(); // prevent immediate navigation
-                const expanded = trigger.getAttribute('aria-expanded') === 'true';
-                setExpanded(!expanded);
-            }
-        });
-
-        trigger.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                const expanded = trigger.getAttribute('aria-expanded') === 'true';
-                setExpanded(!expanded);
-            }
-        });
-
-        trigger.addEventListener('blur', (event) => {
-            if (!dropdown.contains(event.relatedTarget)) {
-                setExpanded(false);
-            }
-        });
-    }
-
-    if (submenu) {
-        submenu.querySelectorAll('a').forEach((link) => {
-            link.addEventListener('focus', () => setExpanded(true));
-        });
-
-        submenu.addEventListener('focusout', (event) => {
-            if (!dropdown.contains(event.relatedTarget)) {
-                setExpanded(false);
-            }
-        });
-    }
+    dropdown.addEventListener('mouseenter', openDropdown);
+    dropdown.addEventListener('mouseleave', closeDropdown);
 });
