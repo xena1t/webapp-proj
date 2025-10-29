@@ -1,27 +1,25 @@
+<section class="hero">
+  <div class="hero-content">
+    <span class="badge">New arrivals</span>
+    <h1>Elevate your setup with cutting-edge tech.</h1>
+    <p>Discover curated laptops, custom PC components, and immersive peripherals—handpicked by enthusiasts for performance seekers.</p>
+    <div class="hero-actions">
+      <a class="btn-primary" href="products.php">Shop the collection</a>
+      <a class="btn-secondary" href="#insights">Explore categories</a>
+    </div>
+    <div class="highlight">
+      <div class="highlight-icon">★</div>
+      <p>Trusted by over 25,000 creators worldwide for reliable gear, tailored support, and lightning-fast delivery.</p>
+    </div>
+  </div>
+</section>
+
 <?php
 $pageTitle = 'Home';
 require_once __DIR__ . '/includes/header.php';
 $featuredProducts = fetch_featured_products();
 $categories = fetch_categories();
 ?>
-<section class="container hero">
-    <div>
-        <span class="badge">New arrivals</span>
-        <h1>Elevate your setup with cutting-edge tech.</h1>
-        <p>Discover curated laptops, custom PC components, and immersive peripherals—handpicked by enthusiasts for performance seekers.</p>
-        <div class="hero-actions">
-            <a class="btn-primary" href="products.php">Shop the collection</a>
-            <a class="btn-secondary" href="#insights">Explore categories</a>
-        </div>
-        <div class="highlight">
-            <div class="highlight-icon">★</div>
-            <p>Trusted by over 25,000 creators worldwide for reliable gear, tailored support, and lightning-fast delivery.</p>
-        </div>
-    </div>
-    <div>
-        <img src="https://images.unsplash.com/photo-1618005198900-89f8bd07c570?auto=format&fit=crop&w=900&q=80" alt="Collection of premium electronics">
-    </div>
-</section>
 
 <section class="container" id="insights" style="margin-top: 4rem;">
     <h2 class="section-title">Featured drops</h2>

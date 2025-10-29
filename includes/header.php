@@ -26,18 +26,18 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                 </a>
                 <nav class="sidebar-nav" aria-label="Main navigation">
                     <ul>
+
+                        <li><a class="sidebar-link" href="index.php">Home</a></li>
                         <li class="sidebar-dropdown">
                             <a class="sidebar-link <?= $currentPage === 'products.php' ? 'active' : '' ?>"
-                                href="products.php"
-                                aria-expanded="false">
+                                href="products.php" aria-expanded="false">
                                 <span>Shop</span>
                                 <span class="chevron" aria-hidden="true">▾</span>
                             </a>
                             <ul class="sidebar-submenu" hidden>
                                 <?php foreach ($categories as $category): ?>
                                     <li>
-                                        <a class="sidebar-sublink"
-                                            href="products.php?category=<?= urlencode($category) ?>">
+                                        <a class="sidebar-sublink" href="products.php?category=<?= urlencode($category) ?>">
                                             <?= htmlspecialchars($category) ?>
                                         </a>
                                     </li>
@@ -45,13 +45,16 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                             </ul>
                         </li>
 
-                        <li><a class="sidebar-link <?= $currentPage === 'checkout.php' ? 'active' : '' ?>" href="checkout.php">Cart</a></li>
-                        <li><a class="sidebar-link <?= $currentPage === 'order-status.php' ? 'active' : '' ?>" href="order-status.php">Order Status</a></li>
+                        <li><a class="sidebar-link <?= $currentPage === 'checkout.php' ? 'active' : '' ?>"
+                                href="checkout.php">Cart</a></li>
+                        <li><a class="sidebar-link <?= $currentPage === 'order-status.php' ? 'active' : '' ?>"
+                                href="order-status.php">Order Status</a></li>
                     </ul>
                 </nav>
                 <div class="sidebar-cta">
                     <p>Get early access to drops, restocks, and insider guides.</p>
-                    <button class="btn-secondary sidebar-newsletter" type="button" data-open-modal>Join the newsletter</button>
+                    <button class="btn-secondary sidebar-newsletter" type="button" data-open-modal>Join the
+                        newsletter</button>
                 </div>
             </div>
         </aside>
@@ -64,6 +67,21 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                 <div class="top-links">
                     <a class="top-link" href="checkout.php">Checkout</a>
                     <a class="top-link" href="order-status.php">Track order</a>
+
+                    <!-- top bar -->
+
+                    <?php if (isset($_SESSION['user'])): ?>
+                        <span class="welcome">
+                            <i class="fa fa-user-circle"></i>
+                            <em><i><?= htmlspecialchars($_SESSION['user']['username']) ?></i></em>
+                        </span>
+                        <a class="logout-link" href="logout.php">Logout</a>
+                    <?php else: ?>
+                        <a class="login-link" href="login.php">Login</a>
+                    <?php endif; ?>
+
+
                 </div>
+
             </header>
             <main class="site-main">
