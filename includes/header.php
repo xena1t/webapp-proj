@@ -4,6 +4,7 @@ start_session();
 $categories = fetch_categories();
 $currentPage = basename($_SERVER['PHP_SELF']);
 $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $currentPage));
+$activeMember = get_current_member();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -64,6 +65,12 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                 <div class="top-links">
                     <a class="top-link" href="checkout.php">Checkout</a>
                     <a class="top-link" href="order-status.php">Track order</a>
+                    <?php if ($activeMember): ?>
+                        <span class="top-link top-link-muted">Hi, <?= htmlspecialchars($activeMember['name']) ?></span>
+                        <a class="top-link" href="logout.php">Log out</a>
+                    <?php else: ?>
+                        <a class="top-link" href="login.php">Member login</a>
+                    <?php endif; ?>
                 </div>
             </header>
-            <main class="site-main">
+            <main class="site-main" id="main-content">
