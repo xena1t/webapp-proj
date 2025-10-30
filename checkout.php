@@ -4,6 +4,13 @@ require_once __DIR__ . '/includes/mailer.php';
 
 $pageTitle = 'Checkout';
 
+start_session();
+if (!is_user_logged_in()) {
+    $_SESSION['flash_error'] = 'Please log in to view your cart.';
+    header('Location: login.php');
+    exit;
+}
+
 $cartItems = fetch_cart_items();
 $totals = calculate_cart_totals($cartItems);
 $orderErrors = [];

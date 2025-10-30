@@ -70,7 +70,8 @@ try {
     $_SESSION['user'] = [
         'id'       => $user_id,
         'username' => $username,
-        'email'    => $email
+        'email'    => $email,
+        'is_admin' => 0
     ];
 
     header('Location: index.php');
