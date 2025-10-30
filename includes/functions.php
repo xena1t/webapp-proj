@@ -112,6 +112,17 @@ function is_user_logged_in(): bool
     return get_authenticated_user_id() !== null;
 }
 
+function is_user_admin(): bool
+{
+    $user = get_authenticated_user();
+
+    if ($user === null) {
+        return false;
+    }
+
+    return isset($user['is_admin']) && (int) $user['is_admin'] === 1;
+}
+
 function get_cart(): array
 {
     $userId = get_authenticated_user_id();

@@ -65,6 +65,9 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                     ☰
                 </button>
                 <div class="top-links">
+                    <?php if (is_user_admin()): ?>
+                        <a class="top-link <?= $currentPage === 'admin.php' ? 'active' : '' ?>" href="admin.php">Admin</a>
+                    <?php endif; ?>
                     <a class="top-link" href="checkout.php">Checkout</a>
                     <a class="top-link" href="order-status.php">Track order</a>
 

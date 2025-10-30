@@ -68,9 +68,10 @@ CREATE TABLE if not exists users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   username VARCHAR(100) NOT NULL,
   email VARCHAR(255) UNIQUE NOT NULL,
-  password VARCHAR(255) NOT NULL
+  password VARCHAR(255) NOT NULL,
+  is_admin TINYINT(1) NOT NULL DEFAULT 0
 );
 
 
-INSERT INTO users (username, email, password) VALUES
-('admin', 'admin@local.com', 'admin');
+INSERT INTO users (username, email, password, is_admin) VALUES
+('admin', 'admin@local.com', 'admin', 1);
