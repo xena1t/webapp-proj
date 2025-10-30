@@ -64,6 +64,7 @@ INSERT INTO products (name, category, tagline, description, price, stock, image_
 
 
 -- for creating user database for login purposes.
+DROP TABLE IF EXISTS users;
 CREATE TABLE if not exists users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   username VARCHAR(100) NOT NULL,
