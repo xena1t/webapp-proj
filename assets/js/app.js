@@ -5,6 +5,7 @@ const modalCloseButtons = document.querySelectorAll('[data-close-modal]');
 const openModalTriggers = document.querySelectorAll('[data-open-modal]');
 const newsletterStorageKey = 'techmart_newsletter_dismissed';
 let modalHasOpened = false;
+let autoOpenScheduled = false;
 
 function hasDismissedNewsletter() {
     try {
@@ -50,9 +51,25 @@ function closeModal() {
 if (modal) {
     modal.setAttribute('aria-hidden', modal.hidden ? 'true' : 'false');
 
-    window.addEventListener('load', () => {
-        setTimeout(() => openModal({ auto: true }), 1000);
-    });
+    const scheduleAutoOpen = () => {
+        if (autoOpenScheduled) {
+            return;
+        }
+
+        autoOpenScheduled = true;
+
+        const schedule = window.requestAnimationFrame || ((callback) => setTimeout(callback, 0));
+
+        schedule(() => {
+            openModal({ auto: true });
+        });
+    };
+
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        scheduleAutoOpen();
+    } else {
+        document.addEventListener('DOMContentLoaded', scheduleAutoOpen, { once: true });
+    }
 
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && !modal.hidden) {
