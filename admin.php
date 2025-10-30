@@ -3,23 +3,32 @@ require_once __DIR__ . '/includes/functions.php';
 
 $pageTitle = 'Product Administration';
 
+// --- Upload config ---
+const UPLOAD_DIR_ABS = __DIR__ . '/assets/uploads'; // absolute path on disk
+const UPLOAD_DIR_REL = 'assets/uploads';             // relative path for DB/HTML
+
+// Ensure the uploads directory exists (self-heal); permissions handled by OS
+if (!is_dir(UPLOAD_DIR_ABS)) {
+    @mkdir(UPLOAD_DIR_ABS, 0775, true);
+}
+
 start_session();
 
+// AuthN + AuthZ
 if (!is_user_logged_in()) {
     $_SESSION['flash_error'] = 'Please log in to access the admin panel.';
     header('Location: login.php');
     exit;
 }
-
 if (!is_user_admin()) {
     http_response_code(403);
     require_once __DIR__ . '/includes/header.php';
-    ?>
+?>
     <section class="container">
         <h1 class="section-title">Access denied</h1>
         <p>You do not have permission to view this page.</p>
     </section>
-    <?php
+<?php
     require_once __DIR__ . '/includes/footer.php';
     exit;
 }
@@ -31,17 +40,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
     if ($action === 'add') {
-        $name = trim($_POST['name'] ?? '');
-        $category = trim($_POST['category'] ?? '');
-        $tagline = trim($_POST['tagline'] ?? '');
+        // --- Gather & validate inputs ---
+        $name        = trim($_POST['name'] ?? '');
+        $category    = trim($_POST['category'] ?? '');
+        $tagline     = trim($_POST['tagline'] ?? '');
         $description = trim($_POST['description'] ?? '');
-        $price = filter_var($_POST['price'] ?? '', FILTER_VALIDATE_FLOAT);
-        $stock = filter_var($_POST['stock'] ?? '', FILTER_VALIDATE_INT);
-        $featured = isset($_POST['featured']) ? 1 : 0;
+        $price       = filter_var($_POST['price'] ?? '', FILTER_VALIDATE_FLOAT);
+        $stock       = filter_var($_POST['stock'] ?? '', FILTER_VALIDATE_INT);
+        $featured    = isset($_POST['featured']) ? 1 : 0;
         $specJsonRaw = trim($_POST['spec_json'] ?? '');
-        $imageUrlInput = trim($_POST['image_url'] ?? '');
-        $imageUrl = '';
-        $uploadInfo = null;
+        $imageUrlInp = trim($_POST['image_url'] ?? '');
+        $imageUrl    = '';       // final URL to store in DB
+        $uploadInfo  = null;     // details if we saved a local file
 
         if ($name === '') {
             $errors[] = 'Product name is required.';
@@ -59,13 +69,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = 'Stock must be zero or a positive integer.';
         }
 
+        // --- Handle image upload OR external URL ---
         if (isset($_FILES['image']) && $_FILES['image']['error'] !== UPLOAD_ERR_NO_FILE) {
             if ($_FILES['image']['error'] !== UPLOAD_ERR_OK) {
                 $errors[] = 'Failed to upload image. Please try again.';
             } else {
-                $tmpPath = $_FILES['image']['tmp_name'];
+                $tmpPath  = $_FILES['image']['tmp_name'];
                 $fileSize = (int) ($_FILES['image']['size'] ?? 0);
-                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+
+                // Detect MIME
+                $finfo    = finfo_open(FILEINFO_MIME_TYPE);
                 $mimeType = $finfo ? finfo_file($finfo, $tmpPath) : null;
                 if ($finfo) {
                     finfo_close($finfo);
@@ -73,8 +86,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $allowedTypes = [
                     'image/jpeg' => 'jpg',
-                    'image/png' => 'png',
-                    'image/gif' => 'gif',
+                    'image/png'  => 'png',
+                    'image/gif'  => 'gif',
                     'image/webp' => 'webp',
                 ];
 
@@ -83,72 +96,84 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } elseif ($fileSize > 5 * 1024 * 1024) {
                     $errors[] = 'Product images must be 5MB or smaller.';
                 } else {
-                    $uploadDir = __DIR__ . '/assets/uploads';
-                    $filename = uniqid('product_', true) . '.' . $allowedTypes[$mimeType];
-                    $uploadInfo = [
-                        'tmp_name' => $tmpPath,
-                        'destination' => $uploadDir . '/' . $filename,
-                        'relative' => 'assets/uploads/' . $filename,
-                    ];
+                    // Ensure dir exists & writable
+                    if (!is_dir(UPLOAD_DIR_ABS)) {
+                        if (!@mkdir(UPLOAD_DIR_ABS, 0775, true) && !is_dir(UPLOAD_DIR_ABS)) {
+                            $errors[] = 'Unable to create uploads directory at ' . UPLOAD_DIR_ABS;
+                        }
+                    }
+                    if (empty($errors) && !is_writable(UPLOAD_DIR_ABS)) {
+                        $errors[] = 'Uploads folder is not writable: ' . UPLOAD_DIR_ABS;
+                        error_log('UPLOAD DIR NOT WRITABLE: ' . UPLOAD_DIR_ABS);
+                    }
+
+                    // Move the uploaded file
+                    if (empty($errors)) {
+                        $filename    = uniqid('product_', true) . '.' . $allowedTypes[$mimeType];
+                        $destination = UPLOAD_DIR_ABS . '/' . $filename;
+                        $relative    = UPLOAD_DIR_REL . '/' . $filename;
+
+                        if (!is_uploaded_file($tmpPath)) {
+                            $errors[] = 'Upload failed: temporary file missing or invalid.';
+                            error_log('UPLOAD TMP INVALID: ' . var_export($tmpPath, true));
+                        } elseif (!@move_uploaded_file($tmpPath, $destination)) {
+                            $errors[] = 'Failed to save the uploaded image (check folder permissions).';
+                            error_log('UPLOAD MOVE FAILED to ' . $destination);
+                        } else {
+                            $uploadInfo = [
+                                'destination' => $destination,
+                                'relative'    => $relative,
+                            ];
+                            $imageUrl = $relative; // store relative path in DB
+                        }
+                    }
                 }
             }
-        } elseif ($imageUrlInput !== '') {
-            if (!filter_var($imageUrlInput, FILTER_VALIDATE_URL)) {
+        } elseif ($imageUrlInp !== '') {
+            if (!filter_var($imageUrlInp, FILTER_VALIDATE_URL)) {
                 $errors[] = 'The external image URL must be a valid URL.';
             } else {
-                $imageUrl = $imageUrlInput;
+                $imageUrl = $imageUrlInp; // external URL stored as-is
             }
         } else {
             $errors[] = 'Upload an image or provide an image URL.';
         }
 
+        // --- Validate/normalize spec JSON (optional) ---
         $specJsonValue = null;
         if ($specJsonRaw !== '') {
-            $decodedSpec = json_decode($specJsonRaw, true);
+            $decoded = json_decode($specJsonRaw, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
                 $errors[] = 'Specifications must be valid JSON.';
             } else {
-                $specJsonValue = json_encode($decodedSpec, JSON_UNESCAPED_UNICODE);
+                $specJsonValue = json_encode($decoded, JSON_UNESCAPED_UNICODE);
             }
         }
 
-        if (empty($errors) && $uploadInfo !== null) {
-            $uploadDir = dirname($uploadInfo['destination']);
-            if (!is_dir($uploadDir)) {
-                if (!mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
-                    $errors[] = 'Unable to create the uploads directory.';
-                }
-            }
-
-            if (empty($errors)) {
-                if (!move_uploaded_file($uploadInfo['tmp_name'], $uploadInfo['destination'])) {
-                    $errors[] = 'Failed to save the uploaded image.';
-                } else {
-                    $imageUrl = $uploadInfo['relative'];
-                }
-            }
-        }
-
+        // --- Insert product if no errors ---
         if (empty($errors)) {
             try {
                 $pdo = get_db_connection();
-                $stmt = $pdo->prepare('INSERT INTO products (name, category, tagline, description, price, stock, image_url, spec_json, featured) VALUES (:name, :category, :tagline, :description, :price, :stock, :image_url, :spec_json, :featured)');
+                $stmt = $pdo->prepare(
+                    'INSERT INTO products (name, category, tagline, description, price, stock, image_url, spec_json, featured)
+                     VALUES (:name, :category, :tagline, :description, :price, :stock, :image_url, :spec_json, :featured)'
+                );
                 $stmt->execute([
-                    'name' => $name,
-                    'category' => $category,
-                    'tagline' => $tagline !== '' ? $tagline : null,
+                    'name'       => $name,
+                    'category'   => $category,
+                    'tagline'    => $tagline !== '' ? $tagline : null,
                     'description' => $description,
-                    'price' => $price,
-                    'stock' => $stock,
-                    'image_url' => $imageUrl,
-                    'spec_json' => $specJsonValue,
-                    'featured' => $featured,
+                    'price'      => $price,
+                    'stock'      => $stock,
+                    'image_url'  => $imageUrl,
+                    'spec_json'  => $specJsonValue,
+                    'featured'   => $featured,
                 ]);
 
                 $successMessage = 'Product "' . htmlspecialchars($name) . '" was added successfully.';
-                $_POST = [];
-            } catch (Throwable $exception) {
-                $errors[] = 'Failed to add product: ' . $exception->getMessage();
+                $_POST = []; // clear form
+            } catch (Throwable $e) {
+                $errors[] = 'Failed to add product: ' . $e->getMessage();
             }
         }
     } elseif ($action === 'delete') {
@@ -158,6 +183,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             try {
                 $pdo = get_db_connection();
+
+                // Fetch image_url before delete
                 $stmt = $pdo->prepare('SELECT image_url FROM products WHERE id = :id');
                 $stmt->execute(['id' => $productId]);
                 $product = $stmt->fetch();
@@ -171,9 +198,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($deleteStmt->rowCount() === 0) {
                         $errors[] = 'Unable to delete the product. Please try again.';
                     } else {
-                        $imageUrl = $product['image_url'] ?? '';
-                        if (is_string($imageUrl) && strpos($imageUrl, 'assets/uploads/') === 0) {
-                            $filePath = __DIR__ . '/' . $imageUrl;
+                        // Only delete local uploads we own
+                        $imageUrl = (string)($product['image_url'] ?? '');
+                        if (str_starts_with($imageUrl, UPLOAD_DIR_REL . '/')) {
+                            $basename = basename($imageUrl);
+                            $filePath = UPLOAD_DIR_ABS . '/' . $basename;
                             if (is_file($filePath)) {
                                 @unlink($filePath);
                             }
@@ -181,8 +210,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $successMessage = 'Product removed successfully.';
                     }
                 }
-            } catch (Throwable $exception) {
-                $errors[] = 'Failed to delete product: ' . $exception->getMessage();
+            } catch (Throwable $e) {
+                $errors[] = 'Failed to delete product: ' . $e->getMessage();
             }
         }
     } else {
@@ -190,6 +219,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// Fetch products grouped by category (relies on your helper)
 $allProducts = fetch_products_by_category();
 
 require_once __DIR__ . '/includes/header.php';
