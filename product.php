@@ -27,9 +27,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($quantity > (int) $product['stock']) {
         $feedbackMessage = 'We only have ' . (int) $product['stock'] . ' units available right now.';
         $feedbackClass = 'notice error';
+    } elseif (!is_user_logged_in()) {
+        $feedbackMessage = 'Please log in to add items to your cart.';
+        $feedbackClass = 'notice error';
     } else {
-        add_to_cart($product['id'], $quantity);
-        $feedbackMessage = 'Added to your cart! <a href="checkout.php">Review cart</a>';
+        try {
+            add_to_cart($product['id'], $quantity);
+            $feedbackMessage = 'Added to your cart! <a href="checkout.php">Review cart</a>';
+        } catch (Throwable $exception) {
+            $feedbackMessage = 'Unable to add this product to your cart. Please try again.';
+            $feedbackClass = 'notice error';
+        }
     }
 }
 

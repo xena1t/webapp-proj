@@ -9,7 +9,7 @@ $availableCategories = fetch_categories();
 if ($selectedCategory && !in_array($selectedCategory, $availableCategories, true)) {
     $selectedCategory = null;
 }
-$limit = $selectedCategory ? 1 : 3;
+$limit = null;
 $products = fetch_products_by_category($selectedCategory, $limit);
 ?>
 <section class="container">
