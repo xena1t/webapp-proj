@@ -500,13 +500,8 @@ require_once __DIR__ . '/includes/header.php';
                                 <td><?= format_price((float) $product['price']) ?></td>
                                 <td><?= (int) $product['stock'] ?></td>
                                 <td>
-                                    <form method="post" onsubmit="return confirm('Are you sure you want to delete this product?');" style="margin-bottom: 0.5rem;">
-                                        <input type="hidden" name="action" value="delete">
-                                        <input type="hidden" name="product_id" value="<?= $productId ?>">
-                                        <button type="submit" class="btn-secondary">Delete</button>
-                                    </form>
                                     <details <?= isset($editFormOverrides[$productId]) ? 'open' : '' ?>>
-                                        <summary>Edit product</summary>
+                                        <summary>Manage product</summary>
                                         <form method="post" enctype="multipart/form-data" class="form-grid" style="margin-top: 1rem; gap: 0.75rem;">
                                             <input type="hidden" name="action" value="edit">
                                             <input type="hidden" name="product_id" value="<?= $productId ?>">
@@ -555,6 +550,11 @@ require_once __DIR__ . '/includes/header.php';
                                             <div>
                                                 <button type="submit" class="btn-primary">Save changes</button>
                                             </div>
+                                        </form>
+                                        <form method="post" onsubmit="return confirm('Are you sure you want to delete this product?');" style="margin-top: 1rem;">
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="product_id" value="<?= $productId ?>">
+                                            <button type="submit" class="btn-secondary" style="background: #c92a2a; border-color: #c92a2a;">Delete product</button>
                                         </form>
                                     </details>
                                 </td>
