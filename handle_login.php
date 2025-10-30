@@ -23,7 +23,7 @@ try {
         throw new RuntimeException('Database connection not initialized.');
     }
 
-    $stmt = $pdo->prepare('SELECT id, username, email, password FROM users WHERE email = ? LIMIT 1');
+    $stmt = $pdo->prepare('SELECT id, username, email, password, is_admin FROM users WHERE email = ? LIMIT 1');
     $stmt->execute(params: [$email]);
     $user = $stmt->fetch();
 
@@ -43,7 +43,8 @@ try {
     $_SESSION['user'] = [
         'id'       => $user['id'],
         'username' => $user['username'],
-        'email'    => $user['email']
+        'email'    => $user['email'],
+        'is_admin' => (int) ($user['is_admin'] ?? 0)
     ];
 
     header('Location: index.php');
