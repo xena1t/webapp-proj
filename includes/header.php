@@ -85,11 +85,32 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
 
                     </ul>
                 </nav>
-                <div class="sidebar-cta">
-                    <p>Get early access to drops, restocks, and insider guides.</p>
-                    <button class="btn-secondary sidebar-newsletter" type="button" data-open-modal>Join the
-                        newsletter</button>
-                </div>
+                <?php
+                $isLoggedIn = is_user_logged_in();
+                $authenticatedUser = $isLoggedIn ? get_authenticated_user() : null;
+
+                $isSubscribed = false;
+                if ($isLoggedIn && $authenticatedUser) {
+                    try {
+                        $pdo = get_db_connection();
+                        $stmt = $pdo->prepare('SELECT 1 FROM newsletter_subscribers WHERE email = :email LIMIT 1');
+                        $stmt->execute(['email' => strtolower(trim($authenticatedUser['email']))]);
+                        $isSubscribed = (bool) $stmt->fetchColumn();
+                    } catch (Throwable $e) {
+                        $isSubscribed = false; // fallback if query fails
+                    }
+                }
+                ?>
+
+                <?php if (!$isSubscribed): ?>
+                    <div class="sidebar-cta">
+                        <p>Get early access to drops, restocks, and insider guides.</p>
+                        <button class="btn-secondary sidebar-newsletter" type="button" data-open-modal>
+                            Join the newsletter
+                        </button>
+                    </div>
+                <?php endif; ?>
+
             </div>
         </aside>
         <div class="content-column">
