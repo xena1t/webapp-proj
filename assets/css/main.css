@@ -715,6 +715,24 @@ input[type="radio"] {
     position: relative;
 }
 
+.modal-text {
+    color: var(--text-secondary);
+    margin-top: 1rem;
+    line-height: 1.6;
+}
+
+.modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.modal-actions .btn-primary,
+.modal-actions .btn-secondary {
+    width: 100%;
+}
+
 .modal-close {
     position: absolute;
     top: 1rem;

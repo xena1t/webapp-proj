@@ -22,39 +22,51 @@
         </footer>
     </div>
 </div>
+<?php $isLoggedIn = is_user_logged_in(); ?>
+<?php $authenticatedUser = $isLoggedIn ? get_authenticated_user() : null; ?>
 <div class="newsletter-modal" id="newsletterModal" role="dialog" aria-modal="true" aria-labelledby="newsletterTitle" hidden>
     <div class="modal-content">
         <button class="modal-close" type="button" data-close-modal aria-label="Close newsletter sign-up">&times;</button>
         <h2 id="newsletterTitle">Unlock 10% off your first order</h2>
         <p>Join our newsletter for exclusive drops, tips, and launch alerts.</p>
-        <form id="newsletterForm" action="scripts/subscribe.php" method="post" novalidate>
-            <label for="newsletterEmail">Email address</label>
-            <input type="email" id="newsletterEmail" name="email" placeholder="you@example.com" required>
 
-            <label for="devicePreference">Primary interest</label>
-            <select id="devicePreference" name="preference" required>
-                <option value="">Select a category</option>
-                <option value="Laptops">Laptops</option>
-                <option value="Components">Components</option>
-                <option value="Peripherals">Peripherals</option>
-                <option value="Smart Home">Smart Home</option>
-            </select>
+        <?php if (!$isLoggedIn): ?>
+            <p class="modal-text">Sign in or create an account to subscribe and claim your welcome discount.</p>
+            <div class="modal-actions">
+                <a class="btn-primary" href="login.php">Sign in</a>
+                <a class="btn-secondary" href="register.php">Create an account</a>
+            </div>
+        <?php else: ?>
+            <form id="newsletterForm" action="scripts/subscribe.php" method="post" novalidate>
+                <label for="newsletterEmail">Email address</label>
+                <input type="email" id="newsletterEmail" name="email"
+                    value="<?= htmlspecialchars($authenticatedUser['email'] ?? '') ?>" readonly required>
 
-            <fieldset>
-                <legend>Budget focus</legend>
-                <label><input type="radio" name="budget" value="Value" required> Value</label>
-                <label><input type="radio" name="budget" value="Mid-range"> Mid-range</label>
-                <label><input type="radio" name="budget" value="Premium"> Premium</label>
-            </fieldset>
+                <label for="devicePreference">Primary interest</label>
+                <select id="devicePreference" name="preference" required>
+                    <option value="">Select a category</option>
+                    <option value="Laptops">Laptops</option>
+                    <option value="Components">Components</option>
+                    <option value="Peripherals">Peripherals</option>
+                    <option value="Smart Home">Smart Home</option>
+                </select>
 
-            <label class="checkbox">
-                <input type="checkbox" name="terms" value="1" required>
-                I agree to receive communications from TechMart.
-            </label>
+                <fieldset>
+                    <legend>Budget focus</legend>
+                    <label><input type="radio" name="budget" value="Value" required> Value</label>
+                    <label><input type="radio" name="budget" value="Mid-range"> Mid-range</label>
+                    <label><input type="radio" name="budget" value="Premium"> Premium</label>
+                </fieldset>
 
-            <button type="submit" class="btn-primary">Join &amp; Claim 10% Off</button>
-            <p class="form-feedback" role="alert" hidden></p>
-        </form>
+                <label class="checkbox">
+                    <input type="checkbox" name="terms" value="1" required>
+                    I agree to receive communications from TechMart.
+                </label>
+
+                <button type="submit" class="btn-primary">Join &amp; Claim 10% Off</button>
+                <p class="form-feedback" role="alert" hidden></p>
+            </form>
+        <?php endif; ?>
     </div>
 </div>
 </body>
