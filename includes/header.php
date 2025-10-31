@@ -59,6 +59,10 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                                 href="checkout.php">Cart</a></li>
                         <li><a class="sidebar-link <?= $currentPage === 'order-status.php' ? 'active' : '' ?>"
                                 href="order-status.php">Order Status</a></li>
+                        <?php if (is_user_logged_in()): ?>
+                            <li><a class="sidebar-link <?= $currentPage === 'account_orders.php' ? 'active' : '' ?>"
+                                    href="account_orders.php">My Orders</a></li>
+                        <?php endif; ?>
                     </ul>
                 </nav>
                 <div class="sidebar-cta">
@@ -83,6 +87,9 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                     <?php endif; ?>
                     <a class="top-link" href="checkout.php">Checkout</a>
                     <a class="top-link" href="order-status.php">Track order</a>
+                    <?php if (is_user_logged_in()): ?>
+                        <a class="top-link <?= $currentPage === 'account_orders.php' ? 'active' : '' ?>" href="account_orders.php">My orders</a>
+                    <?php endif; ?>
 
                     <!-- top bar -->
 

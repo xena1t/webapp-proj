@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/mailer.php';
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -38,6 +39,7 @@ try {
         $pdo->commit();
 
         if ($discount) {
+            send_newsletter_discount_email($normalizedEmail, $discount['code'], true);
             echo json_encode([
                 'success' => true,
                 'message' => 'You are already subscribed! Your welcome code is ' . $discount['code'] . '. Enjoy 10% off your next order.',
@@ -62,6 +64,8 @@ try {
     $subscriberId = (int)$pdo->lastInsertId();
     $discount = issue_newsletter_discount_code($subscriberId, $normalizedEmail, 10.0, $pdo);
     $pdo->commit();
+
+    send_newsletter_discount_email($normalizedEmail, $discount['code']);
 
     echo json_encode([
         'success' => true,
