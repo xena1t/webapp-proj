@@ -117,4 +117,5 @@ INSERT INTO products (name, category, tagline, description, price, stock, image_
 ('Quantum RTX 5080 GPU', 'Components', 'AI-ready graphics powerhouse', 'The Quantum RTX 5080 delivers 18,000 CUDA cores, 32GB GDDR7 memory, and fourth-gen tensor acceleration optimized for creative AI workloads.', 1599.00, 8, 'https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?auto=format&fit=crop&w=900&q=80', JSON_OBJECT('CUDA Cores', '18,432', 'Memory', '32GB GDDR7', 'Boost Clock', '2.7GHz', 'Power', '350W TDP'), 1);
 
 INSERT INTO users (username, email, password, is_admin) VALUES
-('admin', 'admin@local.com', 'admin', 1);
+('admin', 'admin@local.com', 'admin', 1),
+('test', 'test@local.com', 'test', 0);
