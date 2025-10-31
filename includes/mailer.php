@@ -51,3 +51,39 @@ function send_order_confirmation(array $order, array $items): void
 
     @mail($to, $subject, $body, implode("\r\n", $headers));
 }
+
+function send_newsletter_discount_email(string $email, string $code, bool $isReminder = false): void
+{
+    $to = $email;
+    $subject = $isReminder
+        ? 'Your ' . SITE_NAME . ' welcome discount code'
+        : 'Welcome to ' . SITE_NAME . ' — here’s your 10% code';
+
+    $lines = [
+        'Hi there,',
+        '',
+    ];
+
+    if ($isReminder) {
+        $lines[] = 'Here’s a quick reminder of your exclusive 10% welcome code with ' . SITE_NAME . ':';
+    } else {
+        $lines[] = 'Thanks for joining the ' . SITE_NAME . ' newsletter! As promised, here’s your exclusive 10% discount code:';
+    }
+
+    $lines[] = 'Code: ' . $code;
+    $lines[] = '';
+    $lines[] = 'Apply it during checkout to save on your next order. The code is tied to this email address, so be sure to use it when signing in.';
+    $lines[] = '';
+    $lines[] = 'Need ideas on what to pick up? We’ll send curated drops and product guides straight to your inbox soon!';
+    $lines[] = '';
+    $lines[] = '— ' . SITE_NAME . ' Team';
+
+    $body = implode("\n", $lines);
+
+    $headers = [
+        'From: ' . MAIL_FROM_NAME . ' <' . MAIL_FROM_ADDRESS . '>',
+        'Content-Type: text/plain; charset=UTF-8',
+    ];
+
+    @mail($to, $subject, $body, implode("\r\n", $headers));
+}

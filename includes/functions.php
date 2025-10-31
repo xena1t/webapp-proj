@@ -457,3 +457,58 @@ function mark_discount_code_redeemed(int $discountId, int $orderId, ?int $userId
     $stmt->bindValue(':id', $discountId, PDO::PARAM_INT);
     $stmt->execute();
 }
+
+function fetch_orders_for_user(int $userId): array
+{
+    if ($userId <= 0) {
+        return [];
+    }
+
+    try {
+        $pdo = get_db_connection();
+        $stmt = $pdo->prepare(
+            'SELECT * FROM orders WHERE user_id = :user_id ORDER BY created_at DESC'
+        );
+        $stmt->execute(['user_id' => $userId]);
+        $orders = $stmt->fetchAll();
+
+        if (!$orders) {
+            return [];
+        }
+
+        $orderIds = array_map('intval', array_column($orders, 'id'));
+        $itemsByOrder = [];
+
+        if ($orderIds) {
+            $placeholders = implode(',', array_fill(0, count($orderIds), '?'));
+            $itemsStmt = $pdo->prepare(
+                "SELECT oi.order_id, oi.quantity, oi.unit_price, p.name\n                   FROM order_items oi\n                   INNER JOIN products p ON p.id = oi.product_id\n                  WHERE oi.order_id IN ($placeholders)\n               ORDER BY oi.order_id DESC, p.name ASC"
+            );
+            $itemsStmt->execute($orderIds);
+
+            foreach ($itemsStmt->fetchAll() as $item) {
+                $orderId = (int) $item['order_id'];
+                if (!isset($itemsByOrder[$orderId])) {
+                    $itemsByOrder[$orderId] = [];
+                }
+                $itemsByOrder[$orderId][] = [
+                    'name' => $item['name'],
+                    'quantity' => (int) $item['quantity'],
+                    'unit_price' => (float) $item['unit_price'],
+                    'line_total' => (float) $item['unit_price'] * (int) $item['quantity'],
+                ];
+            }
+        }
+
+        foreach ($orders as &$order) {
+            $orderId = (int) $order['id'];
+            $order['items'] = $itemsByOrder[$orderId] ?? [];
+        }
+        unset($order);
+
+        return $orders;
+    } catch (Throwable $exception) {
+        error_log('Failed to fetch orders for user ' . $userId . ': ' . $exception->getMessage());
+        return [];
+    }
+}

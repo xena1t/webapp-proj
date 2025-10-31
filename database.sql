@@ -44,6 +44,7 @@ CREATE TABLE products (
 
 CREATE TABLE orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT DEFAULT NULL,
     customer_name VARCHAR(150) NOT NULL,
     customer_email VARCHAR(150) NOT NULL,
     shipping_address TEXT NOT NULL,
@@ -54,7 +55,9 @@ CREATE TABLE orders (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     KEY idx_orders_email (customer_email),
-    KEY idx_orders_created_at (created_at)
+    KEY idx_orders_created_at (created_at),
+    KEY idx_orders_user (user_id),
+    CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE order_items (
