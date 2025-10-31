@@ -1253,3 +1253,130 @@ a[class*="btn"]:focus {
 [class*="btn"][aria-current="true"]:hover {
   color: #fff !important;                     /* keep contrast on hover */
 }
+
+/* =========================
+   ADMIN DASHBOARD TABS
+   ========================= */
+
+.tab-container {
+  margin-top: 2rem;
+}
+
+.tab-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.tab-button {
+  background: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  padding: 0.6rem 1.4rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-button:hover,
+.tab-button:focus {
+  border-color: rgba(15, 139, 255, 0.28);
+  color: var(--text-primary);
+  box-shadow: 0 10px 24px rgba(15, 139, 255, 0.12);
+}
+
+.tab-button.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 12px 28px rgba(15, 139, 255, 0.28);
+}
+
+.tab-panel {
+  display: none;
+  background: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: 0 24px 44px rgba(15, 23, 42, 0.08);
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+.metrics-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.metric-card {
+  background: linear-gradient(180deg, rgba(15, 139, 255, 0.08), rgba(15, 139, 255, 0.02));
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  border: 1px solid rgba(15, 139, 255, 0.16);
+  box-shadow: 0 16px 32px rgba(15, 139, 255, 0.12);
+}
+
+.metric-card h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.metric-caption {
+  margin: 0.25rem 0 0;
+  color: var(--text-secondary);
+}
+
+.top-products {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.top-products li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.top-products li span:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.top-products li em {
+  font-style: normal;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 720px) {
+  .tab-panel {
+    padding: 1.5rem;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+}

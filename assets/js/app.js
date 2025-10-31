@@ -201,6 +201,39 @@ document.querySelectorAll('.sidebar a').forEach((link) => {
     });
 });
 
+document.querySelectorAll('[data-tab-container]').forEach((container) => {
+    const buttons = Array.from(container.querySelectorAll('[data-tab]'));
+    const panels = Array.from(container.querySelectorAll('[data-tab-panel]'));
+
+    if (!buttons.length || !panels.length) {
+        return;
+    }
+
+    const activateTab = (targetId) => {
+        buttons.forEach((button) => {
+            const isActive = button.getAttribute('data-tab') === targetId;
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+
+        panels.forEach((panel) => {
+            const isActive = panel.getAttribute('data-tab-panel') === targetId;
+            panel.classList.toggle('active', isActive);
+            panel.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+        });
+    };
+
+    const initial = buttons.find((button) => button.classList.contains('active'))
+        || buttons[0];
+    activateTab(initial.getAttribute('data-tab'));
+
+    buttons.forEach((button) => {
+        button.addEventListener('click', () => {
+            activateTab(button.getAttribute('data-tab'));
+        });
+    });
+});
+
 document.querySelectorAll('.sidebar-dropdown').forEach((dropdown) => {
     const trigger = dropdown.querySelector('.sidebar-label, .sidebar-link');
     const submenu = dropdown.querySelector('.sidebar-submenu');
