@@ -1,3 +1,11 @@
+<?php
+$pageTitle = 'Home';
+require_once __DIR__ . '/includes/header.php';
+
+$featuredProducts = fetch_featured_products();
+$shopCategories = $categories ?? fetch_categories();
+?>
+
 <section class="hero">
   <div class="hero-content">
     <span class="badge">New arrivals</span>
@@ -13,13 +21,6 @@
     </div>
   </div>
 </section>
-
-<?php
-$pageTitle = 'Home';
-require_once __DIR__ . '/includes/header.php';
-$featuredProducts = fetch_featured_products();
-$categories = fetch_categories();
-?>
 
 <section class="container" id="insights" style="margin-top: 4rem;">
     <h2 class="section-title">Featured drops</h2>
@@ -44,7 +45,7 @@ $categories = fetch_categories();
 <section class="container" style="margin-top: 5rem;">
     <h2 class="section-title">Shop by category</h2>
     <div class="cards-grid">
-        <?php foreach ($categories as $category): ?>
+        <?php foreach ($shopCategories as $category): ?>
             <article class="card">
                 <div class="card-content">
                     <h3><?= htmlspecialchars($category) ?></h3>
