@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . '/db.php';
 
+const NEWSLETTER_PROMO_CODE = 'WELCOME10';
+const NEWSLETTER_PROMO_RATE = 0.10;
+
 /* ----------------------------
 |  URL + path helpers
 | ---------------------------- */
@@ -184,6 +187,7 @@ function add_to_cart(int $productId, int $quantity): void
     }
 
     $pdo = get_db_connection();
+
     $stmt = $pdo->prepare(
         'INSERT INTO cart_items (user_id, product_id, quantity)
          VALUES (:user_id, :product_id, :quantity)
@@ -256,7 +260,8 @@ function fetch_cart_items(): array
 
         foreach ($products as &$product) {
             $product['quantity']  = (int)$product['quantity'];
-            $product['line_total'] = $product['quantity'] * (float)$product['price'];
+            $product['price']     = (float)$product['price'];
+            $product['line_total'] = $product['quantity'] * $product['price'];
         }
         return $products;
     } catch (Throwable $exception) {
@@ -267,16 +272,69 @@ function fetch_cart_items(): array
 /* ----------------------------
 |  Misc
 | ---------------------------- */
-function calculate_cart_totals(array $items): array
+function calculate_cart_totals(array $items, float $discountRate = 0.0): array
 {
     $subtotal = 0.0;
     foreach ($items as $item) {
-        $subtotal += $item['line_total'];
+        $subtotal += (float) ($item['line_total'] ?? 0);
     }
-    $discount = 0.0;
+
+    $discountRate = max(0.0, min($discountRate, 1.0));
+    $discount = round($subtotal * $discountRate, 2);
     $total    = max($subtotal - $discount, 0.0);
 
-    return ['subtotal' => $subtotal, 'discount' => $discount, 'total' => $total];
+    return [
+        'subtotal' => $subtotal,
+        'discount' => $discount,
+        'discount_rate' => $discountRate,
+        'total' => $total,
+    ];
+}
+
+function validate_newsletter_promo(string $code, string $email): array
+{
+    $normalized = strtoupper(trim($code));
+    if ($normalized === '') {
+        return ['valid' => false, 'message' => '', 'code' => '', 'rate' => 0.0];
+    }
+
+    if ($normalized !== NEWSLETTER_PROMO_CODE) {
+        return [
+            'valid' => false,
+            'message' => 'That promo code is not recognized.',
+            'code' => $normalized,
+            'rate' => 0.0,
+        ];
+    }
+
+    try {
+        $pdo = get_db_connection();
+        $stmt = $pdo->prepare('SELECT COUNT(*) FROM newsletter_subscribers WHERE email = :email');
+        $stmt->execute(['email' => $email]);
+        $isSubscriber = (int) $stmt->fetchColumn() > 0;
+        if (!$isSubscriber) {
+            return [
+                'valid' => false,
+                'message' => 'Join the newsletter to unlock the WELCOME10 discount.',
+                'code' => $normalized,
+                'rate' => 0.0,
+            ];
+        }
+    } catch (Throwable $exception) {
+        return [
+            'valid' => false,
+            'message' => 'We could not verify your promo code right now. Please try again.',
+            'code' => $normalized,
+            'rate' => 0.0,
+        ];
+    }
+
+    return [
+        'valid' => true,
+        'message' => 'Newsletter code applied! Enjoy 10% off your order.',
+        'code' => $normalized,
+        'rate' => NEWSLETTER_PROMO_RATE,
+    ];
 }
 
 function sanitize_string(string $value): string
