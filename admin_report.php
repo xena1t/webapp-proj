@@ -180,55 +180,92 @@ require_once __DIR__ . '/includes/header.php';
         </div>
     <?php endif; ?>
 
-    <form method="get" class="form-grid" style="margin-bottom: 2rem;">
-        <div>
-            <label for="start_date">Start date</label>
-            <input type="date" id="start_date" name="start_date" value="<?= htmlspecialchars($filters['start_date']) ?>">
+    <form method="get" class="report-filters" novalidate>
+        <div class="filter-grid">
+            <div class="filter-field date-range">
+                <label for="start_date">Order date</label>
+                <div class="date-inputs">
+                    <input type="date" id="start_date" name="start_date" value="<?= htmlspecialchars($filters['start_date']) ?>">
+                    <span class="date-separator" aria-hidden="true">to</span>
+                    <input type="date" id="end_date" name="end_date" value="<?= htmlspecialchars($filters['end_date']) ?>">
+                </div>
+            </div>
+            <div class="filter-field">
+                <label for="category">Category</label>
+                <select id="category" name="category">
+                    <option value="">All categories</option>
+                    <?php foreach ($categoryOptions as $category): ?>
+                        <option value="<?= htmlspecialchars($category) ?>" <?= $filters['category'] === $category ? 'selected' : '' ?>><?= htmlspecialchars($category) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="filter-field">
+                <label for="status">Order status</label>
+                <select id="status" name="status">
+                    <option value="">All statuses</option>
+                    <?php foreach ($statusOptions as $status): ?>
+                        <option value="<?= htmlspecialchars($status) ?>" <?= $filters['status'] === $status ? 'selected' : '' ?>><?= htmlspecialchars(ucfirst($status)) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="filter-field">
+                <label for="has_discount">Discount usage</label>
+                <select id="has_discount" name="has_discount">
+                    <option value="">All orders</option>
+                    <option value="with" <?= $filters['has_discount'] === 'with' ? 'selected' : '' ?>>With discount</option>
+                    <option value="without" <?= $filters['has_discount'] === 'without' ? 'selected' : '' ?>>Without discount</option>
+                </select>
+            </div>
+            <div class="filter-field">
+                <label for="promo_code">Promo code</label>
+                <input type="text" id="promo_code" name="promo_code" value="<?= htmlspecialchars($filters['promo_code']) ?>" placeholder="WELCOME10">
+            </div>
+            <div class="filter-field">
+                <label for="min_total">Minimum total</label>
+                <input type="number" step="0.01" min="0" id="min_total" name="min_total" value="<?= htmlspecialchars($filters['min_total']) ?>" placeholder="50.00">
+            </div>
         </div>
-        <div>
-            <label for="end_date">End date</label>
-            <input type="date" id="end_date" name="end_date" value="<?= htmlspecialchars($filters['end_date']) ?>">
-        </div>
-        <div>
-            <label for="category">Category</label>
-            <select id="category" name="category">
-                <option value="">All categories</option>
-                <?php foreach ($categoryOptions as $category): ?>
-                    <option value="<?= htmlspecialchars($category) ?>" <?= $filters['category'] === $category ? 'selected' : '' ?>><?= htmlspecialchars($category) ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div>
-            <label for="status">Order status</label>
-            <select id="status" name="status">
-                <option value="">All statuses</option>
-                <?php foreach ($statusOptions as $status): ?>
-                    <option value="<?= htmlspecialchars($status) ?>" <?= $filters['status'] === $status ? 'selected' : '' ?>><?= htmlspecialchars($status) ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div>
-            <label for="promo_code">Promo code</label>
-            <input type="text" id="promo_code" name="promo_code" value="<?= htmlspecialchars($filters['promo_code']) ?>">
-        </div>
-        <div>
-            <label for="min_total">Minimum total ($)</label>
-            <input type="number" step="0.01" id="min_total" name="min_total" value="<?= htmlspecialchars($filters['min_total']) ?>">
-        </div>
-        <div>
-            <label for="has_discount">Discount usage</label>
-            <select id="has_discount" name="has_discount">
-                <option value="" <?= $filters['has_discount'] === '' ? 'selected' : '' ?>>All orders</option>
-                <option value="with" <?= $filters['has_discount'] === 'with' ? 'selected' : '' ?>>With discount</option>
-                <option value="without" <?= $filters['has_discount'] === 'without' ? 'selected' : '' ?>>Without discount</option>
-            </select>
-        </div>
-        <div class="form-actions" style="align-self: flex-end; display: flex; gap: 1rem;">
+        <div class="filter-actions">
+            <a class="reset-link" href="admin_report.php">Clear filters</a>
+            <button type="submit" name="download" value="1" class="btn-secondary">Export CSV</button>
             <button type="submit" class="btn-primary">Apply filters</button>
-            <a class="btn-secondary" href="admin_report.php">Reset</a>
-            <button type="submit" class="btn-secondary" name="download" value="1">Download CSV</button>
         </div>
     </form>
+
+    <?php
+    $activeFilters = [];
+    if ($validatedStart && $validatedEnd) {
+        $activeFilters[] = 'Placed ' . $validatedStart->format('M j, Y') . ' – ' . $validatedEnd->format('M j, Y');
+    } elseif ($validatedStart) {
+        $activeFilters[] = 'Placed after ' . $validatedStart->format('M j, Y');
+    } elseif ($validatedEnd) {
+        $activeFilters[] = 'Placed before ' . $validatedEnd->format('M j, Y');
+    }
+    if ($filters['category'] !== '') {
+        $activeFilters[] = 'Category: ' . $filters['category'];
+    }
+    if ($filters['status'] !== '') {
+        $activeFilters[] = 'Status: ' . ucfirst($filters['status']);
+    }
+    if ($filters['has_discount'] === 'with') {
+        $activeFilters[] = 'With discount';
+    } elseif ($filters['has_discount'] === 'without') {
+        $activeFilters[] = 'Without discount';
+    }
+    if ($filters['promo_code'] !== '') {
+        $activeFilters[] = 'Promo: ' . strtoupper($filters['promo_code']);
+    }
+    if ($filters['min_total'] !== '' && is_numeric($filters['min_total'])) {
+        $activeFilters[] = 'Total ≥ ' . format_price((float) $filters['min_total']);
+    }
+    ?>
+    <?php if ($activeFilters): ?>
+        <div class="filter-chips" role="status" aria-live="polite">
+            <?php foreach ($activeFilters as $chip): ?>
+                <span class="chip"><?= htmlspecialchars($chip) ?></span>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
 
     <div class="metrics-grid" style="margin-bottom: 2rem;">
         <article class="metric-card">
