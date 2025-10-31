@@ -482,6 +482,111 @@ a:focus {
     gap: 1.2rem;
 }
 
+.report-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    padding: 1.75rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    box-shadow: 0 12px 24px -18px rgba(15, 23, 42, 0.35);
+}
+
+.report-filters .filter-grid {
+    display: grid;
+    gap: 1.25rem 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.report-filters .filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.report-filters .date-range .date-inputs {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.report-filters .date-range input[type="date"] {
+    flex: 1;
+    min-width: 0;
+}
+
+.report-filters .date-separator {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.report-filters .filter-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.report-filters .reset-link {
+    margin-right: auto;
+    color: var(--text-secondary);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.report-filters .reset-link:hover,
+.report-filters .reset-link:focus {
+    color: var(--accent);
+    text-decoration: underline;
+}
+
+.filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 2rem;
+}
+
+.filter-chips .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+@media (max-width: 640px) {
+    .report-filters {
+        padding: 1.25rem;
+    }
+
+    .report-filters .filter-actions {
+        justify-content: stretch;
+    }
+
+    .report-filters .reset-link {
+        width: 100%;
+        margin-right: 0;
+        text-align: center;
+        order: 3;
+    }
+
+    .report-filters .filter-actions .btn-secondary,
+    .report-filters .filter-actions .btn-primary {
+        flex: 1 1 45%;
+    }
+}
+
 label {
     display: block;
     font-size: 0.95rem;

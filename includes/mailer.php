@@ -1,6 +1,181 @@
 <?php
 require_once __DIR__ . '/functions.php';
 
+/**
+ * Send a plain-text email using either the configured SMTP relay or PHP's mail().
+ * Returns true when the transport reports success.
+ */
+function deliver_mail(string $to, string $subject, string $body, array $headers = []): bool
+{
+    $recipient = trim($to);
+    if ($recipient === '' || preg_match('/[\r\n]/', $recipient)) {
+        error_log('Refusing to send email: invalid recipient "' . $to . '"');
+        return false;
+    }
+
+    $subject = trim($subject);
+
+    $normalizedHeaders = [];
+    $headerLookup = [];
+    foreach ($headers as $line) {
+        $line = trim((string) $line);
+        if ($line === '') {
+            continue;
+        }
+        if (preg_match('/^[^:]+:/', $line) !== 1) {
+            continue;
+        }
+        $normalizedHeaders[] = $line;
+        [$name, $value] = explode(':', $line, 2);
+        $headerLookup[strtolower(trim($name))] = trim($value);
+    }
+
+    if (!isset($headerLookup['from'])) {
+        $fromAddress = defined('MAIL_FROM_ADDRESS') ? MAIL_FROM_ADDRESS : 'no-reply@localhost';
+        $fromName = defined('MAIL_FROM_NAME') ? MAIL_FROM_NAME : (defined('SITE_NAME') ? SITE_NAME : 'Storefront');
+        $normalizedHeaders[] = 'From: ' . $fromName . ' <' . $fromAddress . '>';
+        $headerLookup['from'] = $fromAddress;
+    }
+
+    if (!isset($headerLookup['mime-version'])) {
+        $normalizedHeaders[] = 'MIME-Version: 1.0';
+    }
+    if (!isset($headerLookup['content-transfer-encoding'])) {
+        $normalizedHeaders[] = 'Content-Transfer-Encoding: 8bit';
+    }
+    if (!isset($headerLookup['date'])) {
+        $normalizedHeaders[] = 'Date: ' . date(DATE_RFC2822);
+    }
+    if (!isset($headerLookup['message-id'])) {
+        $domain = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        try {
+            $identifier = bin2hex(random_bytes(16));
+        } catch (Throwable $e) {
+            $identifier = str_replace('.', '', uniqid('', true));
+        }
+        $normalizedHeaders[] = 'Message-ID: <' . $identifier . '@' . $domain . '>';
+    }
+
+    $normalizedBody = preg_replace("/(?<!\r)\n/", "\r\n", $body);
+    if ($normalizedBody === null) {
+        $normalizedBody = $body;
+    }
+    $normalizedBody = rtrim($normalizedBody, "\r\n") . "\r\n";
+
+    $smtpResult = smtp_send($recipient, $subject, $normalizedBody, $normalizedHeaders);
+    if ($smtpResult === true) {
+        return true;
+    }
+
+    if ($smtpResult === false) {
+        error_log('SMTP delivery failed, falling back to mail() for ' . $recipient);
+    }
+
+    $headerString = implode("\r\n", $normalizedHeaders);
+    $success = @mail($recipient, $subject, $normalizedBody, $headerString);
+    if (!$success) {
+        error_log('mail() failed to deliver message to ' . $recipient);
+    }
+    return $success;
+}
+
+/**
+ * Attempt to send mail via a basic SMTP socket. Returns true on success, false on failure,
+ * and null when SMTP is not configured.
+ */
+function smtp_send(string $to, string $subject, string $body, array $headers): ?bool
+{
+    if (!defined('SMTP_HOST') || SMTP_HOST === '') {
+        return null;
+    }
+
+    $host = SMTP_HOST;
+    $port = defined('SMTP_PORT') ? (int) SMTP_PORT : 25;
+    $address = sprintf('%s:%d', $host, $port);
+
+    $errno = 0;
+    $errstr = '';
+    $socket = @stream_socket_client($address, $errno, $errstr, 10, STREAM_CLIENT_CONNECT);
+    if (!$socket) {
+        error_log(sprintf('SMTP connection to %s failed: %s (%d)', $address, $errstr, $errno));
+        return false;
+    }
+    stream_set_timeout($socket, 10);
+
+    $closeSocket = static function () use (&$socket): void {
+        if (is_resource($socket)) {
+            fclose($socket);
+        }
+    };
+
+    try {
+        $read = static function () use ($socket): string {
+            $data = '';
+            while (($line = fgets($socket, 515)) !== false) {
+                $data .= $line;
+                if (strlen($line) >= 4 && $line[3] === '-') {
+                    continue;
+                }
+                break;
+            }
+            return $data;
+        };
+
+        $expect = static function (array $codes, string $context) use ($read): void {
+            $response = $read();
+            if ($response === '' || !preg_match('/^(\d{3})/', $response, $matches)) {
+                throw new RuntimeException('Empty SMTP response during ' . $context);
+            }
+            $code = (int) $matches[1];
+            if (!in_array($code, $codes, true)) {
+                throw new RuntimeException('Unexpected SMTP response during ' . $context . ': ' . trim($response));
+            }
+        };
+
+        $send = static function (string $command) use ($socket): void {
+            fwrite($socket, $command . "\r\n");
+        };
+
+        $expect([220], 'connection');
+
+        $serverName = $_SERVER['SERVER_NAME'] ?? ($_SERVER['HTTP_HOST'] ?? 'localhost');
+        $send('EHLO ' . $serverName);
+        $expect([250], 'EHLO');
+
+        $fromAddress = defined('MAIL_FROM_ADDRESS') ? MAIL_FROM_ADDRESS : 'no-reply@localhost';
+        $send('MAIL FROM:<' . $fromAddress . '>');
+        $expect([250], 'MAIL FROM');
+
+        $recipients = array_filter(array_map('trim', preg_split('/,/', $to)));
+        if (empty($recipients)) {
+            throw new RuntimeException('No valid SMTP recipient provided.');
+        }
+        foreach ($recipients as $recipient) {
+            $send('RCPT TO:<' . $recipient . '>');
+            $expect([250, 251], 'RCPT TO');
+        }
+
+        $send('DATA');
+        $expect([354], 'DATA');
+
+        $messageHeaders = array_merge(['Subject: ' . $subject], $headers);
+        $message = implode("\r\n", $messageHeaders) . "\r\n\r\n" . $body;
+        $message = preg_replace('/^\./m', '..', $message);
+        $message = rtrim($message, "\r\n") . "\r\n";
+
+        fwrite($socket, $message . ".\r\n");
+        $expect([250], 'message body');
+
+        $send('QUIT');
+        $closeSocket();
+        return true;
+    } catch (Throwable $exception) {
+        error_log('SMTP send failed: ' . $exception->getMessage());
+        $closeSocket();
+        return false;
+    }
+}
+
 function send_order_confirmation(array $order, array $items): void
 {
     $to = $order['customer_email'];
@@ -45,11 +220,12 @@ function send_order_confirmation(array $order, array $items): void
     $body = implode("\n", $lines);
 
     $headers = [
-        'From: ' . MAIL_FROM_NAME . ' <' . MAIL_FROM_ADDRESS . '>',
         'Content-Type: text/plain; charset=UTF-8',
     ];
 
-    @mail($to, $subject, $body, implode("\r\n", $headers));
+    if (!deliver_mail($to, $subject, $body, $headers)) {
+        error_log('Failed to send order confirmation for order #' . $order['id']);
+    }
 }
 
 function send_newsletter_discount_email(string $email, string $code, bool $isReminder = false): void
@@ -81,9 +257,10 @@ function send_newsletter_discount_email(string $email, string $code, bool $isRem
     $body = implode("\n", $lines);
 
     $headers = [
-        'From: ' . MAIL_FROM_NAME . ' <' . MAIL_FROM_ADDRESS . '>',
         'Content-Type: text/plain; charset=UTF-8',
     ];
 
-    @mail($to, $subject, $body, implode("\r\n", $headers));
+    if (!deliver_mail($to, $subject, $body, $headers)) {
+        error_log('Failed to send newsletter discount email to ' . $email);
+    }
 }

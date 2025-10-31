@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/includes/functions.php'; // must set $pdo and start_session()
-require_once __DIR__ .'/includes/header.php';
+require_once __DIR__ . '/includes/functions.php';
+start_session();
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: login.php');
     exit;
@@ -60,10 +60,7 @@ try {
 } catch (Throwable $e) {
     // Log and show full stack info
     error_log('[Throwable] ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
-    $_SESSION['flash_error'] =
-        'Error: ' . htmlspecialchars($e->getMessage()) .
-        ' in ' . basename($e->getFile()) .
-        ' line ' . $e->getLine();
+    $_SESSION['flash_error'] = 'An unexpected error occurred. Please try again later.';
     header('Location: login.php');
     exit;
 }
