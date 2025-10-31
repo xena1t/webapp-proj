@@ -18,6 +18,13 @@ function send_order_confirmation(array $order, array $items): void
     }
 
     $lines[] = '';
+    if (!empty($order['discount_amount'])) {
+        $discountLine = 'Discount applied: -' . format_price((float) $order['discount_amount']);
+        if (!empty($order['promo_code'])) {
+            $discountLine .= ' (code ' . $order['promo_code'] . ')';
+        }
+        $lines[] = $discountLine;
+    }
     $lines[] = 'Total charged: ' . format_price((float) $order['total']);
 
     $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';

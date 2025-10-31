@@ -2,7 +2,12 @@
 require_once __DIR__ . '/functions.php';
 start_session();
 $categories = fetch_categories();
+$activeCategory = isset($_GET['category']) ? trim((string) $_GET['category']) : null;
+if ($activeCategory === '') {
+    $activeCategory = null;
+}
 $currentPage = basename($_SERVER['PHP_SELF']);
+$shopExpanded = $currentPage === 'products.php';
 $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $currentPage));
 ?>
 <!DOCTYPE html>
@@ -30,18 +35,23 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                         <li><a class="sidebar-link" href="index.php">Home</a></li>
                         <li class="sidebar-dropdown">
                             <a class="sidebar-link <?= $currentPage === 'products.php' ? 'active' : '' ?>"
-                                href="products.php" aria-expanded="false">
+                                href="products.php" aria-expanded="<?= $shopExpanded ? 'true' : 'false' ?>" data-toggle-submenu>
                                 <span>Shop</span>
                                 <span class="chevron" aria-hidden="true">▾</span>
                             </a>
-                            <ul class="sidebar-submenu" hidden>
-                                <?php foreach ($categories as $category): ?>
-                                    <li>
-                                        <a class="sidebar-sublink" href="products.php?category=<?= urlencode($category) ?>">
-                                            <?= htmlspecialchars($category) ?>
-                                        </a>
-                                    </li>
-                                <?php endforeach; ?>
+                            <ul class="sidebar-submenu"<?= $shopExpanded ? '' : ' hidden' ?>>
+                                <?php if ($categories): ?>
+                                    <?php foreach ($categories as $category): ?>
+                                        <li>
+                                            <a class="sidebar-sublink <?= ($shopExpanded && $activeCategory === $category) ? 'active' : '' ?>"
+                                                href="products.php?category=<?= urlencode($category) ?>">
+                                                <?= htmlspecialchars($category) ?>
+                                            </a>
+                                        </li>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <li><span class="sidebar-sublink text-muted">Catalog unavailable</span></li>
+                                <?php endif; ?>
                             </ul>
                         </li>
 
@@ -68,6 +78,8 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                     <?php if (is_user_admin()): ?>
                         <a class="top-link <?= $currentPage === 'admin.php' ? 'active' : '' ?>" href="admin.php">Admin</a>
                         <a class="top-link <?= $currentPage === 'admin_sales.php' ? 'active' : '' ?>" href="admin_sales.php">Sales</a>
+                        <a class="top-link <?= $currentPage === 'admin_report.php' ? 'active' : '' ?>" href="admin_report.php">Sales
+                            report</a>
                     <?php endif; ?>
                     <a class="top-link" href="checkout.php">Checkout</a>
                     <a class="top-link" href="order-status.php">Track order</a>

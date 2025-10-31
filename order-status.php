@@ -66,6 +66,9 @@ if ($orderId && $orderEmail) {
                     <li><?= htmlspecialchars($item['name']) ?> × <?= (int) $item['quantity'] ?> — <?= format_price($item['unit_price'] * $item['quantity']) ?></li>
                 <?php endforeach; ?>
             </ul>
+            <?php if (!empty($order['discount_amount']) && (float) $order['discount_amount'] > 0): ?>
+                <p>Discount applied: −<?= format_price((float) $order['discount_amount']) ?><?php if (!empty($order['promo_code'])): ?> using code <?= htmlspecialchars($order['promo_code']) ?><?php endif; ?></p>
+            <?php endif; ?>
             <p><strong>Total paid:</strong> <?= format_price((float) $order['total']) ?></p>
             <p>We will email updates to <strong><?= htmlspecialchars($order['customer_email']) ?></strong>.</p>
         </div>

@@ -10,7 +10,14 @@ if ($selectedCategory && !in_array($selectedCategory, $availableCategories, true
     $selectedCategory = null;
 }
 $limit = null;
-$products = fetch_products_by_category($selectedCategory, $limit);
+$catalogError = null;
+try {
+    $products = fetch_products_by_category($selectedCategory, $limit, true, false);
+} catch (Throwable $exception) {
+    error_log('Unable to load catalog: ' . $exception->getMessage());
+    $catalogError = 'We couldn\'t load products from the catalog right now. Please try again shortly.';
+    $products = [];
+}
 ?>
 <section class="container">
     <header style="margin-bottom: 2.5rem;">
@@ -29,11 +36,14 @@ $products = fetch_products_by_category($selectedCategory, $limit);
             </form>
         </div>
     </header>
-    <?php if (empty($products)): ?>
+    <?php if ($catalogError): ?>
+        <div class="notice" role="alert"><?= htmlspecialchars($catalogError) ?></div>
+    <?php elseif (empty($products)): ?>
         <p>No products were found. Please adjust your filters.</p>
     <?php else: ?>
         <div class="cards-grid">
             <?php foreach ($products as $product): ?>
+                <?php $imageUrl = asset_url((string) $product['image_url']); ?>
                 <article class="card">
                     <div class="card-content">
                         <h3><?= htmlspecialchars($product['name']) ?></h3>
@@ -41,7 +51,7 @@ $products = fetch_products_by_category($selectedCategory, $limit);
                         <div class="product-price"><?= format_price((float) $product['price']) ?></div>
                         <a class="btn-secondary" href="product.php?id=<?= $product['id'] ?>">View details</a>
                         <div class="product-image">
-                            <img src="<?= htmlspecialchars($product['image_url']) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
+                            <img src="<?= htmlspecialchars($imageUrl) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
                         </div>
                     </div>
                 </article>

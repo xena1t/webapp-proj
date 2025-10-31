@@ -235,7 +235,8 @@ document.querySelectorAll('[data-tab-container]').forEach((container) => {
 });
 
 document.querySelectorAll('.sidebar-dropdown').forEach((dropdown) => {
-    const trigger = dropdown.querySelector('.sidebar-label, .sidebar-link');
+    const trigger = dropdown.querySelector('[data-toggle-submenu]')
+        || dropdown.querySelector('.sidebar-label, .sidebar-link');
     const submenu = dropdown.querySelector('.sidebar-submenu');
 
     if (!trigger || !submenu) return;
@@ -254,8 +255,23 @@ document.querySelectorAll('.sidebar-dropdown').forEach((dropdown) => {
         submenu.setAttribute('aria-hidden', 'true');
     };
 
-    closeDropdown();
+    const toggleDropdown = (event) => {
+        event.preventDefault();
+        const expanded = trigger.getAttribute('aria-expanded') === 'true';
+        if (expanded) {
+            closeDropdown();
+        } else {
+            openDropdown();
+        }
+    };
 
+    if (trigger.classList.contains('active')) {
+        openDropdown();
+    } else {
+        closeDropdown();
+    }
+
+    trigger.addEventListener('click', toggleDropdown);
     dropdown.addEventListener('mouseenter', openDropdown);
     dropdown.addEventListener('mouseleave', closeDropdown);
 });
