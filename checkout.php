@@ -11,13 +11,15 @@ if (!is_user_logged_in()) {
     exit;
 }
 
+$userId = get_authenticated_user_id();
+
 $appliedDiscount = null;
 $discountMessage = null;
 $discountError = null;
 if (isset($_SESSION['checkout_discount']) && is_array($_SESSION['checkout_discount'])) {
     $potentialDiscount = $_SESSION['checkout_discount'];
     if (isset($potentialDiscount['code'], $potentialDiscount['email'])) {
-        $validation = validate_discount_code($potentialDiscount['code'], $potentialDiscount['email'], get_authenticated_user_id());
+        $validation = validate_discount_code($potentialDiscount['code'], $potentialDiscount['email'], $userId);
         if ($validation['valid']) {
             $appliedDiscount = $validation['discount'];
             $_SESSION['checkout_discount'] = $appliedDiscount;
@@ -50,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif (!$emailForDiscount) {
             $discountError = 'Enter the email tied to your newsletter subscription to use the discount.';
         } else {
-            $validation = validate_discount_code($promo, $emailForDiscount, get_authenticated_user_id());
+            $validation = validate_discount_code($promo, $emailForDiscount, $userId);
             if ($validation['valid']) {
                 $appliedDiscount = $validation['discount'];
                 $_SESSION['checkout_discount'] = $appliedDiscount;
@@ -96,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (!$email) {
                         $orderErrors[] = 'Enter your email before applying a discount code.';
                     } else {
-                        $promoValidation = validate_discount_code($promo, $email, get_authenticated_user_id());
+                        $promoValidation = validate_discount_code($promo, $email, $userId);
                         if ($promoValidation['valid']) {
                             $discountForOrder = $promoValidation['discount'];
                             $_SESSION['checkout_discount'] = $discountForOrder;
@@ -106,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                     }
                 } elseif ($appliedDiscount) {
-                    $promoValidation = validate_discount_code($appliedDiscount['code'], $email ?: $appliedDiscount['email'], get_authenticated_user_id());
+                    $promoValidation = validate_discount_code($appliedDiscount['code'], $email ?: $appliedDiscount['email'], $userId);
                     if ($promoValidation['valid']) {
                         $discountForOrder = $promoValidation['discount'];
                         $_SESSION['checkout_discount'] = $discountForOrder;
@@ -126,8 +128,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 try {
                     $pdo->beginTransaction();
 
-                    $orderStmt = $pdo->prepare('INSERT INTO orders (customer_name, customer_email, shipping_address, total, discount_amount, status, promo_code) VALUES (:name, :email, :address, :total, :discount, :status, :promo)');
+                    $orderStmt = $pdo->prepare('INSERT INTO orders (user_id, customer_name, customer_email, shipping_address, total, discount_amount, status, promo_code) VALUES (:user_id, :name, :email, :address, :total, :discount, :status, :promo)');
                     $orderStmt->execute([
+                        'user_id' => $userId,
                         'name' => $name,
                         'email' => $email,
                         'address' => $address,
@@ -165,7 +168,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
 
                     if ($discountForOrder) {
-                        mark_discount_code_redeemed((int) $discountForOrder['id'], $orderId, get_authenticated_user_id(), $pdo);
+                        mark_discount_code_redeemed((int) $discountForOrder['id'], $orderId, $userId, $pdo);
                     }
 
                     $pdo->commit();

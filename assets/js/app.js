@@ -108,23 +108,26 @@ if (newsletterForm) {
         const budget = formData.get('budget');
         const terms = formData.get('terms');
 
+        const validationErrors = [];
+
         if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            showFeedback('Please enter a valid email address.', true);
-            return;
+            validationErrors.push('Please enter a valid email address.');
         }
 
         if (!preference) {
-            showFeedback('Please select your primary interest.', true);
-            return;
+            validationErrors.push('Please select your primary interest.');
         }
 
         if (!budget) {
-            showFeedback('Please choose a budget focus.', true);
-            return;
+            validationErrors.push('Please choose a budget focus.');
         }
 
         if (!terms) {
-            showFeedback('Please accept the terms to continue.', true);
+            validationErrors.push('Please accept the terms to continue.');
+        }
+
+        if (validationErrors.length > 0) {
+            showFeedback(validationErrors, true);
             return;
         }
 
@@ -152,9 +155,10 @@ if (newsletterForm) {
 
 function showFeedback(message, isError) {
     if (!feedback) return;
-    feedback.textContent = message;
+    const text = Array.isArray(message) ? message.join('\n') : message;
+    feedback.textContent = text;
     feedback.hidden = false;
-    feedback.classList.toggle('error', isError);
+    feedback.classList.toggle('error', Boolean(isError));
 }
 
 const sidebar = document.querySelector('.sidebar');
