@@ -31,15 +31,15 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                 </a>
                 <nav class="sidebar-nav" aria-label="Main navigation">
                     <ul>
-
                         <li><a class="sidebar-link" href="index.php">Home</a></li>
                         <li class="sidebar-dropdown">
                             <a class="sidebar-link <?= $currentPage === 'products.php' ? 'active' : '' ?>"
-                                href="products.php" aria-expanded="<?= $shopExpanded ? 'true' : 'false' ?>" data-toggle-submenu>
+                                href="products.php" aria-expanded="<?= $shopExpanded ? 'true' : 'false' ?>"
+                                data-toggle-submenu>
                                 <span>Shop</span>
                                 <span class="chevron" aria-hidden="true">▾</span>
                             </a>
-                            <ul class="sidebar-submenu"<?= $shopExpanded ? '' : ' hidden' ?>>
+                            <ul class="sidebar-submenu" <?= $shopExpanded ? '' : ' hidden' ?>>
                                 <?php if ($categories): ?>
                                     <?php foreach ($categories as $category): ?>
                                         <li>
@@ -63,6 +63,26 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                             <li><a class="sidebar-link <?= $currentPage === 'account_orders.php' ? 'active' : '' ?>"
                                     href="account_orders.php">My Orders</a></li>
                         <?php endif; ?>
+                        <?php if (is_user_admin()): ?>
+                            <li class="sidebar-dropdown">
+                                <a class="sidebar-link <?= in_array($currentPage, ['admin.php', 'admin_sales.php', 'admin_report.php']) ? 'active' : '' ?>"
+                                    href="admin.php"
+                                    aria-expanded="<?= in_array($currentPage, ['admin.php', 'admin_sales.php', 'admin_report.php']) ? 'true' : 'false' ?>"
+                                    data-toggle-submenu>
+                                    <span>Admin Page</span>
+                                    <span class="chevron" aria-hidden="true">▾</span>
+                                </a>
+                                <ul class="sidebar-submenu" <?= in_array($currentPage, ['admin.php', 'admin_sales.php', 'admin_report.php']) ? '' : ' hidden' ?>>
+                                    <li><a class="sidebar-sublink <?= $currentPage === 'admin.php' ? 'active' : '' ?>"
+                                            href="admin.php">Add & Delete Products</a></li>
+                                    <li><a class="sidebar-sublink <?= $currentPage === 'admin_sales.php' ? 'active' : '' ?>"
+                                            href="admin_sales.php">Sales</a></li>
+                                    <li><a class="sidebar-sublink <?= $currentPage === 'admin_report.php' ? 'active' : '' ?>"
+                                            href="admin_report.php">Sales Report</a></li>
+                                </ul>
+                            </li>
+                        <?php endif; ?>
+
                     </ul>
                 </nav>
                 <div class="sidebar-cta">
@@ -79,16 +99,11 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                     ☰
                 </button>
                 <div class="top-links">
-                    <?php if (is_user_admin()): ?>
-                        <a class="top-link <?= $currentPage === 'admin.php' ? 'active' : '' ?>" href="admin.php">Admin</a>
-                        <a class="top-link <?= $currentPage === 'admin_sales.php' ? 'active' : '' ?>" href="admin_sales.php">Sales</a>
-                        <a class="top-link <?= $currentPage === 'admin_report.php' ? 'active' : '' ?>" href="admin_report.php">Sales
-                            report</a>
-                    <?php endif; ?>
                     <a class="top-link" href="checkout.php">Checkout</a>
                     <a class="top-link" href="order-status.php">Track order</a>
                     <?php if (is_user_logged_in()): ?>
-                        <a class="top-link <?= $currentPage === 'account_orders.php' ? 'active' : '' ?>" href="account_orders.php">My orders</a>
+                        <a class="top-link <?= $currentPage === 'account_orders.php' ? 'active' : '' ?>"
+                            href="account_orders.php">My orders</a>
                     <?php endif; ?>
 
                     <!-- top bar -->
