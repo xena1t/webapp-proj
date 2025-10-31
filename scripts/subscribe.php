@@ -9,15 +9,22 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$emailInput = $_POST['email'] ?? '';
-$email = filter_var($emailInput, FILTER_VALIDATE_EMAIL);
-$normalizedEmail = $email ? normalize_email($email) : null;
+$authenticatedUser = get_authenticated_user();
+if ($authenticatedUser === null) {
+    http_response_code(401);
+    echo json_encode(['success' => false, 'message' => 'Please sign in to subscribe to the newsletter.']);
+    exit;
+}
+
+$emailFromAccount = $authenticatedUser['email'] ?? '';
+$validatedEmail = filter_var($emailFromAccount, FILTER_VALIDATE_EMAIL);
+$normalizedEmail = $validatedEmail ? normalize_email($validatedEmail) : null;
 $preference = sanitize_string($_POST['preference'] ?? '');
 $budget = sanitize_string($_POST['budget'] ?? '');
 $terms = isset($_POST['terms']);
 
 if (!$normalizedEmail) {
-    echo json_encode(['success' => false, 'message' => 'Please provide a valid email.']);
+    echo json_encode(['success' => false, 'message' => 'Your account email appears to be invalid.']);
     exit;
 }
 
