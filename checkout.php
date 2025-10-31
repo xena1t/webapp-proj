@@ -12,9 +12,10 @@ if (!is_user_logged_in()) {
 }
 
 $cartItems = fetch_cart_items();
-$totals = calculate_cart_totals($cartItems);
+$discountRate = 0.0;
+$appliedPromoCode = '';
+$promoSuccessMessage = null;
 $orderErrors = [];
-$orderSuccess = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['update_cart']) && isset($_POST['quantities']) && is_array($_POST['quantities'])) {
@@ -48,6 +49,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $orderErrors[] = 'Please choose a payment method.';
             }
 
+            if ($promo !== '') {
+                if (!$email) {
+                    $orderErrors[] = 'Enter a valid email before applying a promo code.';
+                } else {
+                    $promoCheck = validate_newsletter_promo($promo, $email);
+                    if ($promoCheck['valid']) {
+                        $discountRate = $promoCheck['rate'];
+                        $appliedPromoCode = $promoCheck['code'];
+                        $promoSuccessMessage = $promoCheck['message'];
+                        $_POST['promo'] = $appliedPromoCode;
+                    } elseif ($promoCheck['message'] !== '') {
+                        $orderErrors[] = $promoCheck['message'];
+                    }
+                }
+            }
+
+            $totals = calculate_cart_totals($cartItems, $discountRate);
+
             if (!$orderErrors) {
                 $pdo = get_db_connection();
 
@@ -61,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'address' => $address,
                         'total' => $totals['total'],
                         'status' => 'Processing',
-                        'promo' => $promo,
+                        'promo' => $appliedPromoCode ?: null,
                     ]);
 
                     $orderId = (int) $pdo->lastInsertId();
@@ -93,17 +112,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     $pdo->commit();
 
-                    $orderSuccess = [
+                    $orderSummary = [
                         'id' => $orderId,
                         'customer_name' => $name,
                         'customer_email' => $email,
                         'total' => $totals['total'],
                     ];
 
-                    send_order_confirmation($orderSuccess, $cartItems);
+                    send_order_confirmation($orderSummary, $cartItems);
                     clear_cart();
 
-                    header('Location: order-status.php?order=' . $orderId . '&email=' . urlencode($email));
+                    header('Location: checkout-confirmation.php?order=' . $orderId . '&email=' . urlencode($email));
                     exit;
                 } catch (Throwable $exception) {
                     if ($pdo->inTransaction()) {
@@ -116,8 +135,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $cartItems = fetch_cart_items();
-    $totals = calculate_cart_totals($cartItems);
 }
+
+$totals = calculate_cart_totals($cartItems, $discountRate);
 
 require_once __DIR__ . '/includes/header.php';
 ?>
@@ -204,6 +224,11 @@ require_once __DIR__ . '/includes/header.php';
                 <div>
                     <label for="promo">Promo code (optional)</label>
                     <input type="text" id="promo" name="promo" value="<?= htmlspecialchars($_POST['promo'] ?? '') ?>">
+                    <?php if ($promoSuccessMessage && $discountRate > 0): ?>
+                        <p class="text-muted" style="margin-top: 0.5rem; color: #1a7f37;">
+                            <?= htmlspecialchars($promoSuccessMessage) ?>
+                        </p>
+                    <?php endif; ?>
                 </div>
                 <button type="submit" class="btn-primary">Place order</button>
             </form>
