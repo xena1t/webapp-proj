@@ -6,6 +6,7 @@ USE techmart;
 SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS cart_items;
+DROP TABLE IF EXISTS discount_codes;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS newsletter_subscribers;
 DROP TABLE IF EXISTS products;
@@ -47,6 +48,7 @@ CREATE TABLE orders (
     customer_email VARCHAR(150) NOT NULL,
     shipping_address TEXT NOT NULL,
     total DECIMAL(10,2) NOT NULL,
+    discount_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
     status VARCHAR(50) NOT NULL DEFAULT 'Processing',
     promo_code VARCHAR(40) DEFAULT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -74,6 +76,26 @@ CREATE TABLE newsletter_subscribers (
     budget_focus VARCHAR(40) NOT NULL,
     subscribed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY uniq_newsletter_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE discount_codes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    newsletter_subscriber_id INT DEFAULT NULL,
+    code VARCHAR(40) NOT NULL,
+    email VARCHAR(150) NOT NULL,
+    discount_percent DECIMAL(5,2) NOT NULL DEFAULT 10.00,
+    max_uses INT NOT NULL DEFAULT 1,
+    redeemed_at TIMESTAMP NULL DEFAULT NULL,
+    redeemed_by_user_id INT DEFAULT NULL,
+    redeemed_order_id INT DEFAULT NULL,
+    expires_at TIMESTAMP NULL DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_discount_code (code),
+    KEY idx_discount_email (email),
+    KEY idx_discount_subscriber (newsletter_subscriber_id),
+    CONSTRAINT fk_discount_subscriber FOREIGN KEY (newsletter_subscriber_id) REFERENCES newsletter_subscribers(id) ON DELETE SET NULL,
+    CONSTRAINT fk_discount_user FOREIGN KEY (redeemed_by_user_id) REFERENCES users(id) ON DELETE SET NULL,
+    CONSTRAINT fk_discount_order FOREIGN KEY (redeemed_order_id) REFERENCES orders(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE cart_items (

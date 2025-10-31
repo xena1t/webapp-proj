@@ -11,8 +11,24 @@ if (!is_user_logged_in()) {
     exit;
 }
 
+$appliedDiscount = null;
+$discountMessage = null;
+$discountError = null;
+if (isset($_SESSION['checkout_discount']) && is_array($_SESSION['checkout_discount'])) {
+    $potentialDiscount = $_SESSION['checkout_discount'];
+    if (isset($potentialDiscount['code'], $potentialDiscount['email'])) {
+        $validation = validate_discount_code($potentialDiscount['code'], $potentialDiscount['email'], get_authenticated_user_id());
+        if ($validation['valid']) {
+            $appliedDiscount = $validation['discount'];
+            $_SESSION['checkout_discount'] = $appliedDiscount;
+        } else {
+            $discountError = $validation['message'];
+            unset($_SESSION['checkout_discount']);
+        }
+    }
+}
+
 $cartItems = fetch_cart_items();
-$totals = calculate_cart_totals($cartItems);
 $orderErrors = [];
 $orderSuccess = null;
 
@@ -25,7 +41,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    if (isset($_POST['place_order'])) {
+    if (isset($_POST['apply_discount'])) {
+        $promo = sanitize_string($_POST['promo'] ?? '');
+        $emailForDiscount = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
+
+        if ($promo === '') {
+            $discountError = 'Enter your discount code to apply it.';
+        } elseif (!$emailForDiscount) {
+            $discountError = 'Enter the email tied to your newsletter subscription to use the discount.';
+        } else {
+            $validation = validate_discount_code($promo, $emailForDiscount, get_authenticated_user_id());
+            if ($validation['valid']) {
+                $appliedDiscount = $validation['discount'];
+                $_SESSION['checkout_discount'] = $appliedDiscount;
+                $discountMessage = 'Discount code applied successfully.';
+            } else {
+                $discountError = $validation['message'];
+                unset($_SESSION['checkout_discount']);
+                $appliedDiscount = null;
+            }
+        }
+    } elseif (isset($_POST['remove_discount'])) {
+        unset($_SESSION['checkout_discount']);
+        $appliedDiscount = null;
+        $discountMessage = 'Discount removed.';
+    }
+
+    if (isset($_POST['place_order']) && !isset($_POST['apply_discount']) && !isset($_POST['remove_discount'])) {
         if (empty($cartItems)) {
             $orderErrors[] = 'Your cart is empty. Add products before checking out.';
         } else {
@@ -34,6 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $address = sanitize_string($_POST['address'] ?? '');
             $payment = sanitize_string($_POST['payment_method'] ?? '');
             $promo = sanitize_string($_POST['promo'] ?? '');
+            $discountForOrder = null;
 
             if (!$name) {
                 $orderErrors[] = 'Please provide your full name.';
@@ -49,19 +92,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if (!$orderErrors) {
+                if ($promo !== '') {
+                    if (!$email) {
+                        $orderErrors[] = 'Enter your email before applying a discount code.';
+                    } else {
+                        $promoValidation = validate_discount_code($promo, $email, get_authenticated_user_id());
+                        if ($promoValidation['valid']) {
+                            $discountForOrder = $promoValidation['discount'];
+                            $_SESSION['checkout_discount'] = $discountForOrder;
+                            $appliedDiscount = $discountForOrder;
+                        } else {
+                            $orderErrors[] = $promoValidation['message'];
+                        }
+                    }
+                } elseif ($appliedDiscount) {
+                    $promoValidation = validate_discount_code($appliedDiscount['code'], $email ?: $appliedDiscount['email'], get_authenticated_user_id());
+                    if ($promoValidation['valid']) {
+                        $discountForOrder = $promoValidation['discount'];
+                        $_SESSION['checkout_discount'] = $discountForOrder;
+                        $appliedDiscount = $discountForOrder;
+                    } else {
+                        $orderErrors[] = $promoValidation['message'];
+                        unset($_SESSION['checkout_discount']);
+                        $appliedDiscount = null;
+                    }
+                }
+            }
+
+            if (!$orderErrors) {
+                $totalsForOrder = calculate_cart_totals($cartItems, $discountForOrder ?? $appliedDiscount);
                 $pdo = get_db_connection();
 
                 try {
                     $pdo->beginTransaction();
 
-                    $orderStmt = $pdo->prepare('INSERT INTO orders (customer_name, customer_email, shipping_address, total, status, promo_code) VALUES (:name, :email, :address, :total, :status, :promo)');
+                    $orderStmt = $pdo->prepare('INSERT INTO orders (customer_name, customer_email, shipping_address, total, discount_amount, status, promo_code) VALUES (:name, :email, :address, :total, :discount, :status, :promo)');
                     $orderStmt->execute([
                         'name' => $name,
                         'email' => $email,
                         'address' => $address,
-                        'total' => $totals['total'],
+                        'total' => $totalsForOrder['total'],
+                        'discount' => $totalsForOrder['discount'],
                         'status' => 'Processing',
-                        'promo' => $promo,
+                        'promo' => $discountForOrder['code'] ?? ($appliedDiscount['code'] ?? null),
                     ]);
 
                     $orderId = (int) $pdo->lastInsertId();
@@ -91,17 +164,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         ]);
                     }
 
+                    if ($discountForOrder) {
+                        mark_discount_code_redeemed((int) $discountForOrder['id'], $orderId, get_authenticated_user_id(), $pdo);
+                    }
+
                     $pdo->commit();
 
                     $orderSuccess = [
                         'id' => $orderId,
                         'customer_name' => $name,
                         'customer_email' => $email,
-                        'total' => $totals['total'],
+                        'total' => $totalsForOrder['total'],
+                        'discount_amount' => $totalsForOrder['discount'],
+                        'promo_code' => $discountForOrder['code'] ?? ($appliedDiscount['code'] ?? null),
                     ];
 
                     send_order_confirmation($orderSuccess, $cartItems);
                     clear_cart();
+                    unset($_SESSION['checkout_discount']);
 
                     header('Location: order-status.php?order=' . $orderId . '&email=' . urlencode($email));
                     exit;
@@ -116,8 +196,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $cartItems = fetch_cart_items();
-    $totals = calculate_cart_totals($cartItems);
 }
+
+$totals = calculate_cart_totals($cartItems, $appliedDiscount);
 
 require_once __DIR__ . '/includes/header.php';
 ?>
@@ -176,6 +257,13 @@ require_once __DIR__ . '/includes/header.php';
             <p><strong>Total: <?= format_price((float) $totals['total']) ?></strong></p>
         </div>
 
+        <?php if ($discountMessage): ?>
+            <div class="notice" style="margin-top: 1rem;"><?= htmlspecialchars($discountMessage) ?></div>
+        <?php endif; ?>
+        <?php if ($discountError): ?>
+            <div class="notice error" style="margin-top: 1rem;"><?= htmlspecialchars($discountError) ?></div>
+        <?php endif; ?>
+
         <section style="margin-top: 2rem;">
             <h2 class="section-title">Checkout</h2>
             <form method="post" class="form-grid" novalidate>
@@ -202,8 +290,19 @@ require_once __DIR__ . '/includes/header.php';
                     </select>
                 </div>
                 <div>
-                    <label for="promo">Promo code (optional)</label>
-                    <input type="text" id="promo" name="promo" value="<?= htmlspecialchars($_POST['promo'] ?? '') ?>">
+                    <label for="promo">Discount code</label>
+                    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+                        <input type="text" id="promo" name="promo" value="<?= htmlspecialchars($appliedDiscount['code'] ?? ($_POST['promo'] ?? '')) ?>" style="flex:1 1 220px;">
+                        <?php if ($appliedDiscount): ?>
+                            <button type="submit" class="btn-secondary" name="remove_discount" value="1">Remove</button>
+                        <?php else: ?>
+                            <button type="submit" class="btn-secondary" name="apply_discount" value="1">Apply</button>
+                        <?php endif; ?>
+                    </div>
+                    <p class="text-muted" style="margin-top: 0.5rem;">Use the one-time code from your welcome newsletter email.</p>
+                    <?php if ($appliedDiscount): ?>
+                        <p class="text-muted">Applied: <?= htmlspecialchars($appliedDiscount['code']) ?> (<?= number_format((float) $appliedDiscount['percent']) ?>% off)</p>
+                    <?php endif; ?>
                 </div>
                 <button type="submit" class="btn-primary">Place order</button>
             </form>

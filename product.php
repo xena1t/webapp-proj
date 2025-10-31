@@ -49,9 +49,10 @@ if (!empty($product['spec_json'])) {
     }
 }
 ?>
+<?php $productImage = asset_url((string) $product['image_url']); ?>
 <section class="container product-detail">
     <div>
-        <img src="<?= htmlspecialchars($product['image_url']) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
+        <img src="<?= htmlspecialchars($productImage) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
     </div>
     <div class="product-summary">
         <span class="badge"><?= htmlspecialchars($product['category']) ?></span>
