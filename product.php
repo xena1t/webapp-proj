@@ -54,6 +54,10 @@ $currentDetailUrl = $_SERVER['REQUEST_URI'] ?? '/product.php?id=' . $product['id
 if (!str_starts_with($currentDetailUrl, '/')) {
     $currentDetailUrl = '/' . ltrim($currentDetailUrl, '/');
 }
+$wishlistButtonLabel = $isProductInWishlist ? 'Remove from wishlist' : 'Add to wishlist';
+$wishlistAction = $isProductInWishlist ? 'remove' : 'add';
+$wishlistAriaPressed = $isProductInWishlist ? 'true' : 'false';
+$wishlistButtonStateClass = $isProductInWishlist ? ' active' : '';
 $stockCount = (int) $product['stock'];
 $stockStatusClass = 'product-stock';
 if ($stockCount <= 0) {
@@ -103,32 +107,30 @@ if ($stockCount <= 0) {
                 </form>
             <?php endif; ?>
 
-            <?php if (is_user_logged_in()): ?>
-                <br />
-                <form method="post" class="form-grid" action="wishlist.php">
-                    <input type="hidden" name="product_id" value="<?= (int) $product['id'] ?>">
-                    <input type="hidden" name="return_to" value="<?= htmlspecialchars($currentDetailUrl) ?>">
-
-                    <?php if ($isProductInWishlist): ?>
-                        <input type="hidden" name="action" value="remove">
-                        <button type="submit" class="btn-secondary">
-                            ❤️ Remove from wishlist
+            <div class="product-wishlist wishlist-inline">
+                <?php if (is_user_logged_in()): ?>
+                    <form method="post" class="wishlist-form" action="wishlist.php">
+                        <input type="hidden" name="product_id" value="<?= (int) $product['id'] ?>">
+                        <input type="hidden" name="return_to" value="<?= htmlspecialchars($currentDetailUrl) ?>">
+                        <input type="hidden" name="action" value="<?= htmlspecialchars($wishlistAction) ?>">
+                        <button type="submit"
+                            class="btn-ghost wishlist-button<?= $wishlistButtonStateClass ?>"
+                            aria-pressed="<?= $wishlistAriaPressed ?>">
+                            <span class="heart-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" focusable="false">
+                                    <path d="M12 21s-6.716-4.73-9.33-9.138C-0.443 7.454 1.63 3 5.545 3 7.74 3 9.56 4.45 12 7.09 14.44 4.45 16.26 3 18.455 3c3.915 0 5.988 4.454 2.875 8.862C18.716 16.27 12 21 12 21z" />
+                                </svg>
+                            </span>
+                            <span class="wishlist-button__label"><?= htmlspecialchars($wishlistButtonLabel) ?></span>
                         </button>
-                    <?php else: ?>
-                        <input type="hidden" name="action" value="add">
-                        <button type="submit" class="btn-primary">
-                            ♡ Add to wishlist
-                        </button>
-                    <?php endif; ?>
-
-                </form>
-            <?php else: ?>
-                <form class="form-grid" aria-disabled="true">
-                    <button type="button" class="btn-secondary" disabled>
-                        Log in to add to wishlist
-                    </button>
-                </form>
-            <?php endif; ?>
+                    </form>
+                <?php else: ?>
+                    <p class="wishlist-hint">
+                        Please <a href="login.php">log in</a> or <a href="register.php">create an account</a> to save this
+                        item to your wishlist.
+                    </p>
+                <?php endif; ?>
+            </div>
 
         </div>
 
