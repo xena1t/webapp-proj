@@ -1,43 +1,91 @@
-<section class="hero">
-  <div class="hero-content">
-    <span class="badge">New arrivals</span>
-    <h1>Elevate your setup with cutting-edge tech.</h1>
-    <p>Discover curated laptops, custom PC components, and immersive peripherals—handpicked by enthusiasts for performance seekers.</p>
-    <div class="hero-actions">
-      <a class="btn-primary" href="products.php">Shop the collection</a>
-      <a class="btn-secondary" href="#insights">Explore categories</a>
-    </div>
-    <div class="highlight">
-      <div class="highlight-icon">★</div>
-      <p>Trusted by over 25,000 creators worldwide for reliable gear, tailored support, and lightning-fast delivery.</p>
-    </div>
-  </div>
-</section>
-
 <?php
 $pageTitle = 'Home';
 require_once __DIR__ . '/includes/header.php';
 $featuredProducts = fetch_featured_products();
 $categories = fetch_categories();
+
+$userId = get_authenticated_user_id();
+$wishlistIds = $userId ? fetch_wishlist_product_ids($userId) : [];
+$primaryFeature = $featuredProducts[0] ?? null;
+$primaryImage = $primaryFeature ? asset_url((string) $primaryFeature['image_url']) : 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=900&q=80';
 ?>
 
-<section class="container" id="insights" style="margin-top: 4rem;">
-    <h2 class="section-title">Featured drops</h2>
-    <p class="section-subtitle">Handpicked devices engineered for creative pros and competitive gamers.</p>
-    <div class="cards-grid">
-        <?php foreach ($featuredProducts as $product): ?>
-            <article class="card">
-                <div class="card-content">
-                    <h3><?= htmlspecialchars($product['name']) ?></h3>
-                    <p><?= htmlspecialchars($product['tagline'] ?? $product['description']) ?></p>
-                    <div class="product-price"><?= format_price((float) $product['price']) ?></div>
-                    <a class="btn-secondary" href="product.php?id=<?= $product['id'] ?>">View details</a>
-                    <div class="product-image">
-                        <img src="<?= htmlspecialchars($product['image_url']) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
-                    </div>
+<section class="home-hero">
+    <div class="home-hero-copy">
+        <span class="badge">This week&apos;s drop</span>
+        <h1>Build a studio-grade battlestation.</h1>
+        <p>We scout the latest performance laptops, AI-ready GPUs, and color-accurate displays so you can create, compete, and ship faster.</p>
+        <div class="hero-actions">
+            <a class="btn-primary" href="products.php">Shop the collection</a>
+            <a class="btn-secondary" href="#featured">Discover featured gear</a>
+        </div>
+        <dl class="hero-metrics">
+            <div>
+                <dt>48hr</dt>
+                <dd>express delivery in major cities</dd>
+            </div>
+            <div>
+                <dt>25k+</dt>
+                <dd>creators and pros trust TechMart</dd>
+            </div>
+            <div>
+                <dt>4.9<span aria-hidden="true">★</span></dt>
+                <dd>average rating across 3k reviews</dd>
+            </div>
+        </dl>
+    </div>
+    <div class="home-hero-visual">
+        <div class="hero-card">
+            <img src="<?= htmlspecialchars($primaryImage) ?>" alt="Featured setup inspiration" loading="lazy">
+            <?php if ($primaryFeature): ?>
+                <div class="hero-card-meta">
+                    <span><?= htmlspecialchars($primaryFeature['category']) ?></span>
+                    <strong><?= htmlspecialchars($primaryFeature['name']) ?></strong>
+                    <span><?= format_price((float) $primaryFeature['price']) ?></span>
                 </div>
-            </article>
-        <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+    </div>
+</section>
+
+<section class="container" id="featured" style="margin-top: 4rem;">
+    <header class="section-heading">
+        <div>
+            <h2 class="section-title">Featured drops</h2>
+            <p class="section-subtitle">Handpicked devices engineered for creative pros and competitive gamers.</p>
+        </div>
+        <div class="section-controls">
+            <button class="carousel-btn" type="button" data-carousel-prev aria-label="Scroll previous">&#8592;</button>
+            <button class="carousel-btn" type="button" data-carousel-next aria-label="Scroll next">&#8594;</button>
+        </div>
+    </header>
+    <div class="featured-carousel" data-carousel>
+        <div class="featured-track" data-carousel-track>
+            <?php foreach ($featuredProducts as $product): ?>
+                <?php $imageUrl = asset_url((string) $product['image_url']); ?>
+                <?php $inWishlist = $userId ? in_array((int) $product['id'], $wishlistIds, true) : false; ?>
+                <article class="product-card" data-product-card>
+                    <div class="product-media">
+                        <img src="<?= htmlspecialchars($imageUrl) ?>" alt="<?= htmlspecialchars($product['name']) ?>" loading="lazy">
+                        <button class="wishlist-toggle" type="button" title="Save to wishlist"
+                            data-wishlist-toggle
+                            data-product-id="<?= (int) $product['id'] ?>"
+                            aria-pressed="<?= $inWishlist ? 'true' : 'false' ?>">
+                            <span class="sr-only">Toggle wishlist for <?= htmlspecialchars($product['name']) ?></span>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <span class="product-category"><?= htmlspecialchars($product['category']) ?></span>
+                        <h3><?= htmlspecialchars($product['name']) ?></h3>
+                        <p><?= htmlspecialchars($product['tagline'] ?? $product['description']) ?></p>
+                        <div class="product-meta">
+                            <span class="product-price"><?= format_price((float) $product['price']) ?></span>
+                            <a class="btn-tertiary" href="product.php?id=<?= $product['id'] ?>">View details</a>
+                        </div>
+                    </div>
+                </article>
+            <?php endforeach; ?>
+        </div>
     </div>
 </section>
 
@@ -57,24 +105,18 @@ $categories = fetch_categories();
 </section>
 
 <section class="container" style="margin-top: 5rem;">
-    <div class="cards-grid">
-        <article class="card">
-            <div class="card-content">
-                <h3>Concierge support</h3>
-                <p>Chat with hardware experts who understand workloads from 4K editing to triple-A gaming. Get personalized recommendations in under 12 hours.</p>
-            </div>
+    <div class="value-grid">
+        <article class="value-card">
+            <h3>Concierge support</h3>
+            <p>Chat with hardware experts who understand workloads from 4K editing to triple-A gaming. Get personalized recommendations in under 12 hours.</p>
         </article>
-        <article class="card">
-            <div class="card-content">
-                <h3>Fast, insured delivery</h3>
-                <p>Every order is insured, tracked, and delivered within 48 hours in major cities—complete with zero-contact options.</p>
-            </div>
+        <article class="value-card">
+            <h3>Fast, insured delivery</h3>
+            <p>Every order is insured, tracked, and delivered within 48 hours in major cities—complete with zero-contact options.</p>
         </article>
-        <article class="card">
-            <div class="card-content">
-                <h3>Sustainable upgrades</h3>
-                <p>Recycle your previous-gen tech and save up to 15% on next-gen devices with our Circular Tech Trade-in program.</p>
-            </div>
+        <article class="value-card">
+            <h3>Sustainable upgrades</h3>
+            <p>Recycle your previous-gen tech and save up to 15% on next-gen devices with our Circular Tech Trade-in program.</p>
         </article>
     </div>
 </section>

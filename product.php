@@ -18,6 +18,8 @@ require_once __DIR__ . '/includes/header.php';
 
 $feedbackMessage = null;
 $feedbackClass = 'notice';
+$userId = get_authenticated_user_id();
+$inWishlist = $userId ? is_product_in_wishlist($userId, (int) $product['id']) : false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $quantity = isset($_POST['quantity']) ? (int) $_POST['quantity'] : 1;
@@ -51,8 +53,13 @@ if (!empty($product['spec_json'])) {
 ?>
 <?php $productImage = asset_url((string) $product['image_url']); ?>
 <section class="container product-detail">
-    <div>
-        <img src="<?= htmlspecialchars($productImage) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
+    <div class="product-gallery">
+        <div class="product-media large">
+            <img src="<?= htmlspecialchars($productImage) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
+            <button class="wishlist-toggle <?= $inWishlist ? 'active' : '' ?>" type="button" data-wishlist-toggle data-product-id="<?= (int) $product['id'] ?>" aria-pressed="<?= $inWishlist ? 'true' : 'false' ?>" title="Save to wishlist">
+                <span class="sr-only">Toggle wishlist for <?= htmlspecialchars($product['name']) ?></span>
+            </button>
+        </div>
     </div>
     <div class="product-summary">
         <span class="badge"><?= htmlspecialchars($product['category']) ?></span>

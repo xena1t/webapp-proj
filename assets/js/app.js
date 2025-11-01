@@ -199,6 +199,91 @@ window.addEventListener('resize', () => {
     }
 });
 
+function initCarousels() {
+    const carousels = document.querySelectorAll('[data-carousel]');
+    carousels.forEach((carousel) => {
+        const track = carousel.querySelector('[data-carousel-track]');
+        if (!track) {
+            return;
+        }
+
+        const container = carousel.closest('section') || document;
+        const prev = container.querySelector('[data-carousel-prev]');
+        const next = container.querySelector('[data-carousel-next]');
+
+        const scrollTrackBy = (direction) => {
+            const cards = track.querySelectorAll('[data-product-card]');
+            const firstCard = cards[0];
+            const style = window.getComputedStyle(track);
+            const gap = parseFloat(style.columnGap || style.gap || '0');
+            const cardWidth = firstCard ? firstCard.getBoundingClientRect().width : carousel.clientWidth;
+            const delta = (cardWidth + gap) * direction;
+            track.scrollBy({ left: delta, behavior: 'smooth' });
+        };
+
+        if (prev) {
+            prev.addEventListener('click', () => scrollTrackBy(-1));
+        }
+
+        if (next) {
+            next.addEventListener('click', () => scrollTrackBy(1));
+        }
+    });
+}
+
+async function toggleWishlist(button) {
+    if (!button || button.disabled) {
+        return;
+    }
+
+    const productId = Number.parseInt(button.dataset.productId || '', 10);
+    if (!Number.isInteger(productId) || productId <= 0) {
+        return;
+    }
+
+    const isActive = button.getAttribute('aria-pressed') === 'true';
+    button.disabled = true;
+
+    try {
+        const response = await fetch('scripts/wishlist.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+            },
+            body: JSON.stringify({
+                product_id: productId,
+                action: isActive ? 'remove' : 'add',
+            }),
+        });
+
+        const result = await response.json().catch(() => ({ success: false }));
+        if (!response.ok || !result.success) {
+            const message = result && result.message ? result.message : 'Unable to update wishlist. Please try again.';
+            alert(message);
+            return;
+        }
+
+        const inWishlist = Boolean(result.inWishlist);
+        button.setAttribute('aria-pressed', inWishlist ? 'true' : 'false');
+        button.classList.toggle('active', inWishlist);
+    } catch (error) {
+        alert('Unable to update wishlist. Please try again later.');
+    } finally {
+        button.disabled = false;
+    }
+}
+
+document.addEventListener('click', (event) => {
+    const toggle = event.target.closest('[data-wishlist-toggle]');
+    if (toggle) {
+        event.preventDefault();
+        toggleWishlist(toggle);
+    }
+});
+
+initCarousels();
+
 document.querySelectorAll('.sidebar a').forEach((link) => {
     link.addEventListener('click', () => {
         closeSidebar();

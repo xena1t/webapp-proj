@@ -67,31 +67,68 @@ function fetch_featured_products(int $limit = 3, bool $onlyActive = true, bool $
     }
 }
 
-function fetch_products_by_category(?string $category = null, ?int $limit = null, bool $onlyActive = true, bool $suppressErrors = true): array
+function fetch_products_by_category(?string $category = null, ?int $limit = null, bool $onlyActive = true, bool $suppressErrors = true, ?string $search = null): array
 {
     try {
         $pdo = get_db_connection();
 
+        $searchTerm = null;
+        if ($search !== null) {
+            $trimmed = trim($search);
+            if ($trimmed !== '') {
+                $searchTerm = '%' . $trimmed . '%';
+            }
+        }
+
         if ($category) {
             $sql = 'SELECT * FROM products WHERE category = :category';
-            if ($onlyActive) $sql .= ' AND is_active = 1';
+            if ($onlyActive) {
+                $sql .= ' AND is_active = 1';
+            }
+            if ($searchTerm !== null) {
+                $sql .= ' AND (name LIKE :search OR description LIKE :search OR tagline LIKE :search)';
+            }
             $sql .= ' ORDER BY name';
-            if ($limit !== null) $sql .= ' LIMIT :limit';
+            if ($limit !== null) {
+                $sql .= ' LIMIT :limit';
+            }
 
             $stmt = $pdo->prepare($sql);
             $stmt->bindValue(':category', $category, PDO::PARAM_STR);
-            if ($limit !== null) $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            if ($limit !== null) {
+                $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            }
+            if ($searchTerm !== null) {
+                $stmt->bindValue(':search', $searchTerm, PDO::PARAM_STR);
+            }
             $stmt->execute();
             return $stmt->fetchAll();
         }
 
+        $conditions = [];
+        if ($onlyActive) {
+            $conditions[] = 'is_active = 1';
+        }
+        if ($searchTerm !== null) {
+            $conditions[] = '(name LIKE :search OR description LIKE :search OR tagline LIKE :search)';
+        }
+
         $sql = 'SELECT * FROM products';
-        if ($onlyActive) $sql .= ' WHERE is_active = 1';
+        if ($conditions) {
+            $sql .= ' WHERE ' . implode(' AND ', $conditions);
+        }
         $sql .= ' ORDER BY category, name';
-        if ($limit !== null) $sql .= ' LIMIT :limit';
+        if ($limit !== null) {
+            $sql .= ' LIMIT :limit';
+        }
 
         $stmt = $pdo->prepare($sql);
-        if ($limit !== null) $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        if ($limit !== null) {
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        }
+        if ($searchTerm !== null) {
+            $stmt->bindValue(':search', $searchTerm, PDO::PARAM_STR);
+        }
         $stmt->execute();
         return $stmt->fetchAll();
     } catch (Throwable $exception) {
@@ -101,6 +138,79 @@ function fetch_products_by_category(?string $category = null, ?int $limit = null
         }
         return [];
     }
+}
+
+function fetch_wishlist_product_ids(int $userId, bool $suppressErrors = true): array
+{
+    try {
+        $pdo = get_db_connection();
+        $stmt = $pdo->prepare('SELECT product_id FROM wishlist_items WHERE user_id = :user_id');
+        $stmt->execute(['user_id' => $userId]);
+        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    } catch (Throwable $exception) {
+        error_log('Failed to fetch wishlist product IDs: ' . $exception->getMessage());
+        if (!$suppressErrors) {
+            throw $exception;
+        }
+        return [];
+    }
+}
+
+function fetch_wishlist_items(int $userId, bool $suppressErrors = true): array
+{
+    try {
+        $pdo = get_db_connection();
+        $sql = 'SELECT p.* FROM wishlist_items w JOIN products p ON p.id = w.product_id WHERE w.user_id = :user_id AND p.is_active = 1';
+        $sql .= ' ORDER BY w.added_at DESC';
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(['user_id' => $userId]);
+        return $stmt->fetchAll();
+    } catch (Throwable $exception) {
+        error_log('Failed to fetch wishlist items: ' . $exception->getMessage());
+        if (!$suppressErrors) {
+            throw $exception;
+        }
+        return [];
+    }
+}
+
+function is_product_in_wishlist(int $userId, int $productId, bool $suppressErrors = true): bool
+{
+    try {
+        $pdo = get_db_connection();
+        $stmt = $pdo->prepare('SELECT 1 FROM wishlist_items WHERE user_id = :user_id AND product_id = :product_id LIMIT 1');
+        $stmt->execute([
+            'user_id' => $userId,
+            'product_id' => $productId,
+        ]);
+        return (bool) $stmt->fetchColumn();
+    } catch (Throwable $exception) {
+        error_log('Failed to check wishlist item: ' . $exception->getMessage());
+        if (!$suppressErrors) {
+            throw $exception;
+        }
+        return false;
+    }
+}
+
+function add_wishlist_item(int $userId, int $productId): void
+{
+    $pdo = get_db_connection();
+    $stmt = $pdo->prepare('INSERT IGNORE INTO wishlist_items (user_id, product_id) VALUES (:user_id, :product_id)');
+    $stmt->execute([
+        'user_id' => $userId,
+        'product_id' => $productId,
+    ]);
+}
+
+function remove_wishlist_item(int $userId, int $productId): void
+{
+    $pdo = get_db_connection();
+    $stmt = $pdo->prepare('DELETE FROM wishlist_items WHERE user_id = :user_id AND product_id = :product_id');
+    $stmt->execute([
+        'user_id' => $userId,
+        'product_id' => $productId,
+    ]);
 }
 
 /** Public fetch (hides archived by default). Use $onlyActive=false in admin. */
