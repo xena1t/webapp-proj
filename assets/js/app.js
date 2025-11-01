@@ -200,34 +200,114 @@ window.addEventListener('resize', () => {
 });
 
 function initCarousels() {
-    const carousels = document.querySelectorAll('[data-carousel]');
-    carousels.forEach((carousel) => {
+    const schedule = typeof window.requestAnimationFrame === 'function'
+        ? window.requestAnimationFrame.bind(window)
+        : (callback) => window.setTimeout(callback, 16);
+
+    document.querySelectorAll('[data-carousel]').forEach((carousel) => {
         const track = carousel.querySelector('[data-carousel-track]');
-        if (!track) {
+        const cards = track ? Array.from(track.querySelectorAll('[data-product-card]')) : [];
+        if (!track || cards.length === 0) {
             return;
         }
 
-        const container = carousel.closest('section') || document;
-        const prev = container.querySelector('[data-carousel-prev]');
-        const next = container.querySelector('[data-carousel-next]');
+        const container = carousel.closest('[data-carousel-container]')
+            || carousel.closest('section')
+            || carousel.parentElement;
+        const prev = container ? container.querySelector('[data-carousel-prev]') : null;
+        const next = container ? container.querySelector('[data-carousel-next]') : null;
 
-        const scrollTrackBy = (direction) => {
-            const cards = track.querySelectorAll('[data-product-card]');
+        const clampIndex = (value) => Math.max(0, Math.min(value, cards.length - 1));
+
+        const getStep = () => {
             const firstCard = cards[0];
             const style = window.getComputedStyle(track);
-            const gap = parseFloat(style.columnGap || style.gap || '0');
-            const cardWidth = firstCard ? firstCard.getBoundingClientRect().width : carousel.clientWidth;
-            const delta = (cardWidth + gap) * direction;
-            track.scrollBy({ left: delta, behavior: 'smooth' });
+            const gapValue = Number.parseFloat(style.columnGap || style.gap || '0');
+            const gap = Number.isFinite(gapValue) ? gapValue : 0;
+            const width = firstCard
+                ? firstCard.getBoundingClientRect().width
+                : carousel.clientWidth;
+            return width + gap;
+        };
+
+        let currentIndex = 0;
+        let ticking = false;
+
+        const updateState = () => {
+            const step = getStep();
+            const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth - 1);
+            const atStart = track.scrollLeft <= 0;
+            const atEnd = track.scrollLeft >= maxScroll;
+
+            carousel.classList.toggle('at-start', atStart);
+            carousel.classList.toggle('at-end', atEnd);
+
+            if (prev) {
+                prev.disabled = atStart;
+            }
+
+            if (next) {
+                next.disabled = atEnd;
+            }
+
+            if (step > 0) {
+                currentIndex = clampIndex(Math.round(track.scrollLeft / step));
+            } else {
+                currentIndex = 0;
+            }
+        };
+
+        const scrollToIndex = (index) => {
+            const targetIndex = clampIndex(index);
+            const step = getStep();
+            currentIndex = targetIndex;
+            track.scrollTo({
+                left: targetIndex * step,
+                behavior: 'smooth',
+            });
+            schedule(updateState);
+        };
+
+        const handleScroll = () => {
+            if (ticking) {
+                return;
+            }
+
+            ticking = true;
+            schedule(() => {
+                ticking = false;
+                updateState();
+            });
         };
 
         if (prev) {
-            prev.addEventListener('click', () => scrollTrackBy(-1));
+            prev.addEventListener('click', () => {
+                scrollToIndex(currentIndex - 1);
+            });
         }
 
         if (next) {
-            next.addEventListener('click', () => scrollTrackBy(1));
+            next.addEventListener('click', () => {
+                scrollToIndex(currentIndex + 1);
+            });
         }
+
+        track.addEventListener('scroll', handleScroll, { passive: true });
+        track.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowRight') {
+                event.preventDefault();
+                scrollToIndex(currentIndex + 1);
+            } else if (event.key === 'ArrowLeft') {
+                event.preventDefault();
+                scrollToIndex(currentIndex - 1);
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            schedule(updateState);
+        });
+
+        updateState();
     });
 }
 

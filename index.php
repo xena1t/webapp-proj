@@ -48,7 +48,7 @@ $primaryImage = $primaryFeature ? asset_url((string) $primaryFeature['image_url'
     </div>
 </section>
 
-<section class="container" id="featured" style="margin-top: 4rem;">
+<section class="container" id="featured" data-carousel-container style="margin-top: 4rem;">
     <header class="section-heading">
         <div>
             <h2 class="section-title">Featured drops</h2>
@@ -59,12 +59,12 @@ $primaryImage = $primaryFeature ? asset_url((string) $primaryFeature['image_url'
             <button class="carousel-btn" type="button" data-carousel-next aria-label="Scroll next">&#8594;</button>
         </div>
     </header>
-    <div class="featured-carousel" data-carousel>
-        <div class="featured-track" data-carousel-track>
+    <div class="featured-carousel" data-carousel role="region" aria-label="Featured products carousel">
+        <div class="featured-track" data-carousel-track role="list" tabindex="0">
             <?php foreach ($featuredProducts as $product): ?>
                 <?php $imageUrl = asset_url((string) $product['image_url']); ?>
                 <?php $inWishlist = $userId ? in_array((int) $product['id'], $wishlistIds, true) : false; ?>
-                <article class="product-card" data-product-card>
+                <article class="product-card" data-product-card role="listitem">
                     <div class="product-media">
                         <img src="<?= htmlspecialchars($imageUrl) ?>" alt="<?= htmlspecialchars($product['name']) ?>" loading="lazy">
                         <button class="wishlist-toggle" type="button" title="Save to wishlist"

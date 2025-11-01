@@ -506,9 +506,47 @@ a:focus {
     box-shadow: 0 12px 24px rgba(15, 139, 255, 0.3);
 }
 
+.carousel-btn[disabled] {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
 .featured-carousel {
     position: relative;
     margin-top: 1.5rem;
+    isolation: isolate;
+}
+
+.featured-carousel::before,
+.featured-carousel::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 64px;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 2;
+}
+
+.featured-carousel::before {
+    left: 0;
+    background: linear-gradient(90deg, var(--bg-primary) 45%, rgba(255, 255, 255, 0));
+}
+
+.featured-carousel::after {
+    right: 0;
+    background: linear-gradient(270deg, var(--bg-primary) 45%, rgba(255, 255, 255, 0));
+}
+
+.featured-carousel.at-start::before {
+    opacity: 0;
+}
+
+.featured-carousel.at-end::after {
+    opacity: 0;
 }
 
 .featured-track {
@@ -516,12 +554,19 @@ a:focus {
     gap: 1.75rem;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
-    padding-bottom: 1rem;
+    padding: 0 0.25rem 1rem;
     scrollbar-width: none;
+    scroll-behavior: smooth;
+    overscroll-behavior-x: contain;
 }
 
 .featured-track::-webkit-scrollbar {
     display: none;
+}
+
+.featured-track:focus {
+    outline: 3px solid var(--accent);
+    outline-offset: 4px;
 }
 
 .product-grid {
