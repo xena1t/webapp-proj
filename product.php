@@ -92,13 +92,7 @@ if ($stockCount <= 0) {
             <?php if ($stockCount > 0): ?>
                 <form method="post" class="form-grid" action="product.php?id=<?= $product['id'] ?>">
                     <label for="quantity">Quantity</label>
-                    <input type="number"
-                        name="quantity"
-                        id="quantity"
-                        min="1"
-                        max="<?= $stockCount ?>"
-                        value="1"
-                        required>
+                    <input type="number" name="quantity" id="quantity" min="1" max="<?= $stockCount ?>" value="1" required>
                     <button type="submit" class="btn-primary">Add to cart</button>
                 </form>
             <?php else: ?>
@@ -110,34 +104,32 @@ if ($stockCount <= 0) {
             <?php endif; ?>
 
             <?php if (is_user_logged_in()): ?>
-                <form class="wishlist-inline product-wishlist" method="post" action="wishlist.php">
+                <br />
+                <form method="post" class="form-grid" action="wishlist.php">
                     <input type="hidden" name="product_id" value="<?= (int) $product['id'] ?>">
                     <input type="hidden" name="return_to" value="<?= htmlspecialchars($currentDetailUrl) ?>">
+
                     <?php if ($isProductInWishlist): ?>
                         <input type="hidden" name="action" value="remove">
-                        <button type="submit" class="btn-ghost wishlist-button active" aria-pressed="true">
-                            <span class="heart-icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" focusable="false">
-                                    <path d="M12 21s-6.716-4.73-9.33-9.138C-0.443 7.454 1.63 3 5.545 3 7.74 3 9.56 4.45 12 7.09 14.44 4.45 16.26 3 18.455 3c3.915 0 5.988 4.454 2.875 8.862C18.716 16.27 12 21 12 21z" />
-                                </svg>
-                            </span>
-                            <span class="wishlist-button__label">Remove from wishlist</span>
+                        <button type="submit" class="btn-secondary">
+                            ❤️ Remove from wishlist
                         </button>
                     <?php else: ?>
                         <input type="hidden" name="action" value="add">
-                        <button type="submit" class="btn-ghost wishlist-button" aria-pressed="false">
-                            <span class="heart-icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" focusable="false">
-                                    <path d="M12 21s-6.716-4.73-9.33-9.138C-0.443 7.454 1.63 3 5.545 3 7.74 3 9.56 4.45 12 7.09 14.44 4.45 16.26 3 18.455 3c3.915 0 5.988 4.454 2.875 8.862C18.716 16.27 12 21 12 21z" />
-                                </svg>
-                            </span>
-                            <span class="wishlist-button__label">Add to wishlist</span>
+                        <button type="submit" class="btn-primary">
+                            ♡ Add to wishlist
                         </button>
                     <?php endif; ?>
+
                 </form>
             <?php else: ?>
-                <p class="wishlist-hint"><a href="login.php">Log in</a> to save this item to your wishlist.</p>
+                <form class="form-grid" aria-disabled="true">
+                    <button type="button" class="btn-secondary" disabled>
+                        Log in to add to wishlist
+                    </button>
+                </form>
             <?php endif; ?>
+
         </div>
 
     </div>

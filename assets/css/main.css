@@ -387,6 +387,26 @@ a:focus {
     box-shadow: 0 16px 28px rgba(15, 139, 255, 0.25);
 }
 
+.btn-wishlist {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.9rem 1.8rem;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    color: #ffffff;
+    background: linear-gradient(135deg, #ff4d4f, #ff7875);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-wishlist:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 28px rgba(255, 77, 79, 0.3);
+}
+
 .section-title {
     font-size: 2rem;
     margin-bottom: 1rem;
