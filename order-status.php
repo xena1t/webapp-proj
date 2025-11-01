@@ -131,9 +131,9 @@ if ($orderId && $orderEmail) {
         }
 
         $couriers = [
-            ['name' => 'Aurora Express', 'code' => 'AEX', 'url' => 'https://tracking.example.com/aurora?tracking={tracking}'],
-            ['name' => 'Northwind Logistics', 'code' => 'NWL', 'url' => 'https://tracking.example.com/northwind/{tracking}'],
-            ['name' => 'Velocity Couriers', 'code' => 'VCO', 'url' => 'https://tracking.example.com/velocity?code={tracking}'],
+            ['name' => 'Ninja Van ', 'code' => 'NJ', 'url' => 'https://tracking.example.com/aurora?tracking={tracking}'],
+            ['name' => 'Shopee Express Logistics', 'code' => 'SPL', 'url' => 'https://tracking.example.com/northwind/{tracking}'],
+            ['name' => 'LalaMove', 'code' => 'LLM', 'url' => 'https://tracking.example.com/velocity?code={tracking}'],
         ];
         $courier = $couriers[$order['id'] % count($couriers)];
         $trackingId = strtoupper($courier['code']) . '-' . str_pad((string) $order['id'], 8, '0', STR_PAD_LEFT);
