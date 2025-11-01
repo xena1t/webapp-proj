@@ -432,6 +432,26 @@ a:focus {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    height: 100%;
+}
+
+.product-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.product-bottom {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.product-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
 }
 
 .card-actions {
@@ -593,7 +613,6 @@ a:focus {
 .product-image {
     border-radius: var(--radius-md);
     overflow: hidden;
-    margin-top: auto;
 }
 
 .product-price {
@@ -2035,7 +2054,6 @@ details form + form {
 .product-image {
   border-radius: var(--radius-md);
   overflow: hidden;
-  margin-top: auto;
   /* keep consistent size even if images differ */
   aspect-ratio: 16 / 9;
   background: #f2f6ff;

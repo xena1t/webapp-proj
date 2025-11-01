@@ -28,12 +28,18 @@ $categories = fetch_categories();
         <?php foreach ($featuredProducts as $product): ?>
             <article class="card">
                 <div class="card-content">
-                    <h3><?= htmlspecialchars($product['name']) ?></h3>
-                    <p><?= htmlspecialchars($product['tagline'] ?? $product['description']) ?></p>
-                    <div class="product-price"><?= format_price((float) $product['price']) ?></div>
-                    <a class="btn-secondary" href="product.php?id=<?= $product['id'] ?>">View details</a>
-                    <div class="product-image">
-                        <img src="<?= htmlspecialchars($product['image_url']) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
+                    <div class="product-header">
+                        <h3><?= htmlspecialchars($product['name']) ?></h3>
+                        <p><?= htmlspecialchars($product['tagline'] ?? $product['description']) ?></p>
+                    </div>
+                    <div class="product-bottom">
+                        <div class="product-footer">
+                            <div class="product-price"><?= format_price((float) $product['price']) ?></div>
+                            <a class="btn-secondary" href="product.php?id=<?= $product['id'] ?>">View details</a>
+                        </div>
+                        <div class="product-image">
+                            <img src="<?= htmlspecialchars($product['image_url']) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
+                        </div>
                     </div>
                 </div>
             </article>
