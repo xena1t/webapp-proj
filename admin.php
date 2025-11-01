@@ -78,6 +78,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($name === '')            $errors[] = 'Product name is required.';
         if ($category === '')        $errors[] = 'Category is required.';
         if ($description === '')     $errors[] = 'A description is required.';
+        if ($tagline !== '' && (function_exists('mb_strlen') ? mb_strlen($tagline) : strlen($tagline)) > 30) {
+            $errors[] = 'Tagline must be 30 characters or fewer.';
+        }
         if ($price === false || $price < 0)  $errors[] = 'Price must be a positive number.';
         if ($stock === false || $stock < 0)  $errors[] = 'Stock must be zero or a positive integer.';
 
@@ -215,6 +218,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($name === '')            $errors[] = 'Product name is required.';
                 if ($category === '')        $errors[] = 'Category is required.';
                 if ($description === '')     $errors[] = 'A description is required.';
+                if ($tagline !== '' && (function_exists('mb_strlen') ? mb_strlen($tagline) : strlen($tagline)) > 30) {
+                    $errors[] = 'Tagline must be 30 characters or fewer.';
+                }
                 if ($price === false || $price < 0)  $errors[] = 'Price must be a positive number.';
                 if ($stock === false || $stock < 0)  $errors[] = 'Stock must be zero or a positive integer.';
 
@@ -386,7 +392,7 @@ require_once __DIR__ . '/includes/header.php';
                 <input type="text" id="category" name="category" required value="<?= htmlspecialchars($addFormData['category']) ?>">
             </div>
             <div><label for="tagline">Tagline</label>
-                <input type="text" id="tagline" name="tagline" value="<?= htmlspecialchars($addFormData['tagline']) ?>">
+                <input type="text" id="tagline" name="tagline" maxlength="30" value="<?= htmlspecialchars($addFormData['tagline']) ?>">
             </div>
             <div><label for="price">Price</label>
                 <input type="number" id="price" name="price" step="0.01" min="0" required value="<?= htmlspecialchars($addFormData['price']) ?>">
@@ -472,7 +478,7 @@ require_once __DIR__ . '/includes/header.php';
                                                 <input type="text" id="edit-category-<?= $productId ?>" name="category" required value="<?= htmlspecialchars($formData['category']) ?>">
                                             </div>
                                             <div><label for="edit-tagline-<?= $productId ?>">Tagline</label>
-                                                <input type="text" id="edit-tagline-<?= $productId ?>" name="tagline" value="<?= htmlspecialchars($formData['tagline']) ?>">
+                                                <input type="text" id="edit-tagline-<?= $productId ?>" name="tagline" maxlength="30" value="<?= htmlspecialchars($formData['tagline']) ?>">
                                             </div>
                                             <div><label for="edit-price-<?= $productId ?>">Price</label>
                                                 <input type="number" step="0.01" min="0" id="edit-price-<?= $productId ?>" name="price" required value="<?= htmlspecialchars($formData['price']) ?>">

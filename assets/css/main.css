@@ -2037,7 +2037,7 @@ details form + form {
   overflow: hidden;
   margin-top: auto;
   /* keep consistent size even if images differ */
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 1 / 1;
   background: #f2f6ff;
   border: 1px solid var(--border-color);
 }
