@@ -28,7 +28,7 @@ CREATE TABLE users (
 
 CREATE TABLE products (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(150) NOT NULL,
+    name VARCHAR(22) NOT NULL,
     category VARCHAR(80) NOT NULL,
     tagline VARCHAR(200) DEFAULT NULL,
     description TEXT NOT NULL,
@@ -42,6 +42,12 @@ CREATE TABLE products (
     KEY idx_products_category (category),
     KEY idx_products_featured (featured),
     KEY idx_products_is_active (is_active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(22) NOT NULL UNIQUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE orders (
