@@ -126,8 +126,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             if ($postalCode === '') {
                 $orderErrors[] = 'Please provide the postal code for your shipping address.';
-            } elseif (!preg_match('/^[A-Za-z0-9\s\-]{3,10}$/', $postalCode)) {
-                $orderErrors[] = 'Postal codes should be 3 to 10 characters and contain only letters, numbers, spaces, or hyphens.';
+            } elseif (!preg_match('/^[0-9]{3,10}$/', $postalCode)) {
+                $orderErrors[] = 'Postal codes should be 3 to 10 characters and contain only numbers.';
             }
             if (!$payment) {
                 $orderErrors[] = 'Please choose a payment method.';
