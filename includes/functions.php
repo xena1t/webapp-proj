@@ -31,12 +31,32 @@ function fetch_categories(bool $onlyActive = true, bool $suppressErrors = true):
 {
     try {
         $pdo = get_db_connection();
+
+        $segments = [];
+
+        // Always include categories referenced by products so legacy installs work.
         if ($onlyActive) {
-            $stmt = $pdo->query('SELECT DISTINCT category FROM products WHERE is_active = 1 ORDER BY category');
+            $segments[] = 'SELECT DISTINCT category AS name FROM products WHERE is_active = 1';
         } else {
-            $stmt = $pdo->query('SELECT DISTINCT category FROM products ORDER BY category');
+            $segments[] = 'SELECT DISTINCT category AS name FROM products';
         }
-        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        // If the dedicated categories table exists, union it in so categories without
+        // products (yet) are still visible in the navigation and admin forms.
+        if (categories_table_exists($pdo)) {
+            $segments[] = 'SELECT name FROM categories';
+        }
+
+        if (empty($segments)) {
+            return [];
+        }
+
+        $sql = 'SELECT DISTINCT name FROM (' . implode(' UNION ALL ', $segments) . ') AS combined'
+            . " WHERE name IS NOT NULL AND name <> ''"
+            . ' ORDER BY name';
+
+        $stmt = $pdo->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
     } catch (Throwable $exception) {
         error_log('Failed to fetch categories: ' . $exception->getMessage());
         if (!$suppressErrors) {
@@ -44,6 +64,47 @@ function fetch_categories(bool $onlyActive = true, bool $suppressErrors = true):
         }
         return [];
     }
+}
+
+function categories_table_exists(PDO $pdo, bool $forceRefresh = false): bool
+{
+    static $cache = null;
+
+    if ($forceRefresh) {
+        $cache = null;
+    }
+
+    if ($cache !== null) {
+        return $cache;
+    }
+
+    try {
+        $result = $pdo->query("SHOW TABLES LIKE 'categories'");
+        $cache = $result !== false && $result->fetchColumn() !== false;
+    } catch (Throwable $exception) {
+        error_log('Failed checking categories table existence: ' . $exception->getMessage());
+        $cache = false;
+    }
+
+    return $cache;
+}
+
+function ensure_categories_table(PDO $pdo): void
+{
+    if (categories_table_exists($pdo)) {
+        return;
+    }
+
+    $pdo->exec(
+        'CREATE TABLE IF NOT EXISTS categories (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(150) NOT NULL UNIQUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
+    );
+
+    // refresh cache on successful creation
+    categories_table_exists($pdo, true);
 }
 
 function fetch_featured_products(int $limit = 3, bool $onlyActive = true, bool $suppressErrors = true): array

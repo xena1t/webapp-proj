@@ -29,6 +29,7 @@ if (!is_user_admin()) {
 $errors = [];
 $successMessage = null;
 $editFormOverrides = [];
+$categorySuccess = null;
 $addFormData = [
     'name' => '',
     'category' => '',
@@ -47,8 +48,35 @@ $addFormData = [
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
+    /* ---------- ADD CATEGORY ---------- */
+    if ($action === 'add_category') {
+        $newCategory = trim($_POST['new_category'] ?? '');
+
+        if ($newCategory === '') {
+            $errors[] = 'Category name cannot be empty.';
+        } else {
+            try {
+                $pdo = get_db_connection();
+                ensure_categories_table($pdo);
+
+                $stmt = $pdo->prepare('INSERT IGNORE INTO categories (name) VALUES (:name)');
+                $stmt->execute(['name' => $newCategory]);
+
+                if ($stmt->rowCount() === 0) {
+                    $errors[] = 'That category already exists.';
+                } else {
+                    $categorySuccess = 'Category "' . htmlspecialchars($newCategory) . '" added successfully.';
+                }
+            } catch (Throwable $e) {
+                $errors[] = 'Failed to add category: ' . $e->getMessage();
+            }
+        }
+
+        // Skip further processing for this request.
+    }
+
     /* ---------- ADD ---------- */
-    if ($action === 'add') {
+    elseif ($action === 'add') {
         $name        = trim($_POST['name'] ?? '');
         $category    = trim($_POST['category'] ?? '');
         $tagline     = trim($_POST['tagline'] ?? '');
@@ -354,6 +382,7 @@ if (!in_array($show, ['active', 'all', 'archived'], true)) {
 
 // Grab everything once (admin view needs the full set), then filter in PHP.
 $allProductsRaw = fetch_products_by_category(null, null, false); // false = include archived too
+$categoryOptions = fetch_categories(false);
 
 $allProducts = array_values(array_filter($allProductsRaw, function ($p) use ($show) {
     $active = (int)($p['is_active'] ?? 1) === 1;
@@ -381,6 +410,43 @@ require_once __DIR__ . '/includes/header.php';
         </div>
     <?php endif; ?>
 
+    <?php if ($categorySuccess): ?>
+        <div class="notice" style="margin-bottom: 1.5rem; background:#e6ffed; border-color:#34c759;">
+            <?= $categorySuccess ?>
+        </div>
+    <?php endif; ?>
+
+    <datalist id="category-options">
+        <?php foreach ($categoryOptions as $categoryOption): ?>
+            <option value="<?= htmlspecialchars($categoryOption) ?>"></option>
+        <?php endforeach; ?>
+    </datalist>
+
+    <section style="margin-bottom: 2rem;">
+        <h2>Catalog categories</h2>
+        <form method="post" class="form-grid" style="gap: 1rem; max-width: 32rem;">
+            <input type="hidden" name="action" value="add_category">
+            <div style="grid-column: 1 / -1;">
+                <label for="new_category">Add a new category</label>
+                <input type="text" id="new_category" name="new_category" required placeholder="e.g., Tablets">
+            </div>
+            <div>
+                <button type="submit" class="btn-primary">Add category</button>
+            </div>
+        </form>
+        <?php if ($categoryOptions): ?>
+            <p style="margin-top:1rem;">Existing categories:
+                <span style="display:inline-flex; flex-wrap:wrap; gap:.5rem;">
+                    <?php foreach ($categoryOptions as $categoryOption): ?>
+                        <span class="tag"><?= htmlspecialchars($categoryOption) ?></span>
+                    <?php endforeach; ?>
+                </span>
+            </p>
+        <?php else: ?>
+            <p style="margin-top:1rem;" class="text-muted">No categories yet.</p>
+        <?php endif; ?>
+    </section>
+
     <section style="margin-bottom: 2rem;">
         <h2>Add a new product</h2>
         <form method="post" enctype="multipart/form-data" class="form-grid" style="gap: 1rem;">
@@ -389,7 +455,7 @@ require_once __DIR__ . '/includes/header.php';
                 <input type="text" id="name" name="name" required value="<?= htmlspecialchars($addFormData['name']) ?>">
             </div>
             <div><label for="category">Category</label>
-                <input type="text" id="category" name="category" required value="<?= htmlspecialchars($addFormData['category']) ?>">
+                <input type="text" id="category" name="category" list="category-options" required value="<?= htmlspecialchars($addFormData['category']) ?>">
             </div>
             <div><label for="tagline">Tagline</label>
                 <input type="text" id="tagline" name="tagline" maxlength="30" value="<?= htmlspecialchars($addFormData['tagline']) ?>">
@@ -475,7 +541,7 @@ require_once __DIR__ . '/includes/header.php';
                                                 <input type="text" id="edit-name-<?= $productId ?>" name="name" required value="<?= htmlspecialchars($formData['name']) ?>">
                                             </div>
                                             <div><label for="edit-category-<?= $productId ?>">Category</label>
-                                                <input type="text" id="edit-category-<?= $productId ?>" name="category" required value="<?= htmlspecialchars($formData['category']) ?>">
+                                                <input type="text" id="edit-category-<?= $productId ?>" name="category" list="category-options" required value="<?= htmlspecialchars($formData['category']) ?>">
                                             </div>
                                             <div><label for="edit-tagline-<?= $productId ?>">Tagline</label>
                                                 <input type="text" id="edit-tagline-<?= $productId ?>" name="tagline" maxlength="30" value="<?= htmlspecialchars($formData['tagline']) ?>">
