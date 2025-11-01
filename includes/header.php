@@ -125,6 +125,15 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                     <span class="sr-only">Toggle navigation</span>
                     ☰
                 </button>
+                <form class="top-search" action="products.php" method="get" role="search">
+                    <label class="sr-only" for="topSearch">Search products</label>
+                    <input type="search" id="topSearch" name="q" placeholder="Search for products"
+                        value="<?= htmlspecialchars($searchQueryValue) ?>" aria-label="Search for products">
+                    <?php if ($currentPage === 'products.php' && $activeCategory): ?>
+                        <input type="hidden" name="category" value="<?= htmlspecialchars($activeCategory) ?>">
+                    <?php endif; ?>
+                    <button type="submit" class="btn-search">Search</button>
+                </form>
                 <div class="top-links">
                     <!-- <a class="top-link <?= $currentPage === 'wishlist.php' ? 'active' : '' ?>" href="wishlist.php">Wishlist</a> -->
                     <a class="top-link <?= $currentPage === 'checkout.php' ? 'active' : '' ?>"
@@ -150,14 +159,5 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                         <a class="login-link" href="login.php">Login</a>
                     <?php endif; ?>
                 </div>
-                <form class="top-search" action="products.php" method="get" role="search">
-                    <label class="sr-only" for="topSearch">Search products</label>
-                    <input type="search" id="topSearch" name="q" placeholder="Search for products"
-                        value="<?= htmlspecialchars($searchQueryValue) ?>" aria-label="Search for products">
-                    <?php if ($currentPage === 'products.php' && $activeCategory): ?>
-                        <input type="hidden" name="category" value="<?= htmlspecialchars($activeCategory) ?>">
-                    <?php endif; ?>
-                    <button type="submit" class="btn-search">Search</button>
-                </form>
             </header>
             <main class="site-main">
