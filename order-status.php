@@ -71,6 +71,9 @@ if ($orderId && $orderEmail) {
             <?php endif; ?>
             <p><strong>Total paid:</strong> <?= format_price((float) $order['total']) ?></p>
             <p>We will email updates to <strong><?= htmlspecialchars($order['customer_email']) ?></strong>.</p>
+            <p style="margin-top: 1.5rem;">
+                <a class="btn-secondary" href="review.php?order=<?= htmlspecialchars(urlencode((string) $order['id']), ENT_QUOTES, 'UTF-8') ?>&email=<?= htmlspecialchars(urlencode((string) $order['customer_email']), ENT_QUOTES, 'UTF-8') ?>">Share a review of this order</a>
+            </p>
         </div>
     <?php endif; ?>
 </section>

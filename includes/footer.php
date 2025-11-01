@@ -11,11 +11,13 @@
                 <li><a href="mailto:support@techmart.local">support@techmart.local</a></li>
                 <li><a href="order-status.php">Track your order</a></li>
                 <li><a href="checkout.php">Shipping & Returns</a></li>
+                <li><a href="contact.php">Contact support</a></li>
             </ul>
         </div>
         <div>
             <h3>Visit</h3>
             <p>123 Innovation Drive<br>Digital City, 456789</p>
+            <p><a href="about.php">About TechMart</a></p>
         </div>
     </div>
     <p class="footer-copy">&copy; <?= date('Y') ?> <?= SITE_NAME ?>. All rights reserved.</p>
