@@ -6,6 +6,7 @@ $activeCategory = isset($_GET['category']) ? trim((string) $_GET['category']) : 
 if ($activeCategory === '') {
     $activeCategory = null;
 }
+$searchQuery = isset($_GET['q']) ? trim((string) $_GET['q']) : '';
 $currentPage = basename($_SERVER['PHP_SELF']);
 $shopExpanded = $currentPage === 'products.php';
 $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $currentPage));
@@ -55,6 +56,7 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                             </ul>
                         </li>
 
+                        <li><a class="sidebar-link <?= $currentPage === 'wishlist.php' ? 'active' : '' ?>" href="wishlist.php">Wishlist</a></li>
                         <li><a class="sidebar-link <?= $currentPage === 'checkout.php' ? 'active' : '' ?>"
                                 href="checkout.php">Cart</a></li>
                         <li><a class="sidebar-link <?= $currentPage === 'order-status.php' ? 'active' : '' ?>"
@@ -119,7 +121,13 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                     <span class="sr-only">Toggle navigation</span>
                     ☰
                 </button>
+                <form class="top-search" action="products.php" method="get" role="search">
+                    <label class="sr-only" for="headerSearch">Search products</label>
+                    <input type="search" id="headerSearch" name="q" placeholder="Search products..." value="<?= htmlspecialchars($searchQuery) ?>">
+                    <button type="submit" class="search-submit" aria-label="Search">⌕</button>
+                </form>
                 <div class="top-links">
+                    <a class="top-link <?= $currentPage === 'wishlist.php' ? 'active' : '' ?>" href="wishlist.php">Wishlist</a>
                     <a class="top-link" href="checkout.php">Checkout</a>
                     <a class="top-link" href="order-status.php">Track order</a>
                     <?php if (is_user_logged_in()): ?>
