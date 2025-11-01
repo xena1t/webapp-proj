@@ -98,7 +98,7 @@ function ensure_categories_table(PDO $pdo): void
     $pdo->exec(
         'CREATE TABLE IF NOT EXISTS categories (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            name VARCHAR(150) NOT NULL UNIQUE,
+            name VARCHAR(22) NOT NULL UNIQUE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
     );
@@ -114,6 +114,14 @@ function rename_category(PDO $pdo, string $currentName, string $newName): array
 
     if ($currentName === '' || $newName === '') {
         throw new InvalidArgumentException('Both the current and new category names are required.');
+    }
+
+    $lengthChecker = function (string $value): int {
+        return function_exists('mb_strlen') ? mb_strlen($value) : strlen($value);
+    };
+
+    if ($lengthChecker($newName) > 22) {
+        throw new InvalidArgumentException('Category names must be 22 characters or fewer.');
     }
 
     if ($currentName === $newName) {

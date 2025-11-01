@@ -30,6 +30,8 @@ $errors = [];
 $successMessage = null;
 $editFormOverrides = [];
 $categorySuccess = null;
+$maxCategoryLength = 22;
+$maxProductNameLength = 22;
 $addFormData = [
     'name' => '',
     'category' => '',
@@ -54,6 +56,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($newCategory === '') {
             $errors[] = 'Category name cannot be empty.';
+        } elseif ((function_exists('mb_strlen') ? mb_strlen($newCategory) : strlen($newCategory)) > $maxCategoryLength) {
+            $errors[] = 'Category name must be 22 characters or fewer.';
         } else {
             try {
                 $pdo = get_db_connection();
@@ -82,6 +86,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($currentName === '' || $newName === '') {
             $errors[] = 'Both the current and new category names are required.';
+        } elseif ((function_exists('mb_strlen') ? mb_strlen($newName) : strlen($newName)) > $maxCategoryLength) {
+            $errors[] = 'Category name must be 22 characters or fewer.';
         } else {
             try {
                 $pdo = get_db_connection();
@@ -148,6 +154,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // validate
         if ($name === '')            $errors[] = 'Product name is required.';
+        if ($name !== '' && (function_exists('mb_strlen') ? mb_strlen($name) : strlen($name)) > $maxProductNameLength) {
+            $errors[] = 'Product name must be 22 characters or fewer.';
+        }
         if ($category === '')        $errors[] = 'Category is required.';
         if ($description === '')     $errors[] = 'A description is required.';
         if ($tagline !== '' && (function_exists('mb_strlen') ? mb_strlen($tagline) : strlen($tagline)) > 30) {
@@ -288,6 +297,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $removePreviousImage = false;
 
                 if ($name === '')            $errors[] = 'Product name is required.';
+                if ($name !== '' && (function_exists('mb_strlen') ? mb_strlen($name) : strlen($name)) > $maxProductNameLength) {
+                    $errors[] = 'Product name must be 22 characters or fewer.';
+                }
                 if ($category === '')        $errors[] = 'Category is required.';
                 if ($description === '')     $errors[] = 'A description is required.';
                 if ($tagline !== '' && (function_exists('mb_strlen') ? mb_strlen($tagline) : strlen($tagline)) > 30) {
@@ -473,7 +485,7 @@ require_once __DIR__ . '/includes/header.php';
             <input type="hidden" name="action" value="add_category">
             <div style="grid-column: 1 / -1;">
                 <label for="new_category">Add a new category</label>
-                <input type="text" id="new_category" name="new_category" required placeholder="e.g., Tablets">
+                <input type="text" id="new_category" name="new_category" required placeholder="e.g., Tablets" maxlength="22">
             </div>
             <div>
                 <button type="submit" class="btn-primary">Add category</button>
@@ -504,7 +516,7 @@ require_once __DIR__ . '/includes/header.php';
                                         <input type="hidden" name="action" value="rename_category">
                                         <input type="hidden" name="current_name" value="<?= htmlspecialchars($categoryOption) ?>">
                                         <label class="sr-only" for="rename-category-<?= $index ?>">Rename <?= htmlspecialchars($categoryOption) ?></label>
-                                        <input type="text" id="rename-category-<?= $index ?>" name="updated_name" required value="<?= htmlspecialchars($categoryOption) ?>">
+                                        <input type="text" id="rename-category-<?= $index ?>" name="updated_name" required value="<?= htmlspecialchars($categoryOption) ?>" maxlength="22">
                                         <button type="submit" class="btn-secondary btn-sm">Rename</button>
                                     </form>
                                 </td>
@@ -538,7 +550,8 @@ require_once __DIR__ . '/includes/header.php';
         <form method="post" enctype="multipart/form-data" class="form-grid" style="gap: 1rem;">
             <input type="hidden" name="action" value="add">
             <div><label for="name">Product name</label>
-                <input type="text" id="name" name="name" required value="<?= htmlspecialchars($addFormData['name']) ?>">
+                <input type="text" id="name" name="name" required maxlength="22"
+                    value="<?= htmlspecialchars($addFormData['name']) ?>">
             </div>
             <div><label for="category">Category</label>
                 <input type="text" id="category" name="category" list="category-options" required value="<?= htmlspecialchars($addFormData['category']) ?>">
@@ -624,7 +637,8 @@ require_once __DIR__ . '/includes/header.php';
                                             <input type="hidden" name="action" value="edit">
                                             <input type="hidden" name="product_id" value="<?= $productId ?>">
                                             <div><label for="edit-name-<?= $productId ?>">Product name</label>
-                                                <input type="text" id="edit-name-<?= $productId ?>" name="name" required value="<?= htmlspecialchars($formData['name']) ?>">
+                                                <input type="text" id="edit-name-<?= $productId ?>" name="name" required maxlength="22"
+                                                    value="<?= htmlspecialchars($formData['name']) ?>">
                                             </div>
                                             <div><label for="edit-category-<?= $productId ?>">Category</label>
                                                 <input type="text" id="edit-category-<?= $productId ?>" name="category" list="category-options" required value="<?= htmlspecialchars($formData['category']) ?>">
