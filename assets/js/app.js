@@ -199,6 +199,54 @@ window.addEventListener('resize', () => {
     }
 });
 
+async function copyToClipboard(text, button) {
+    if (!text) return;
+
+    let success = false;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+            await navigator.clipboard.writeText(text);
+            success = true;
+        } catch (error) {
+            success = false;
+        }
+    }
+
+    if (!success) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'absolute';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            success = document.execCommand('copy');
+        } catch (error) {
+            success = false;
+        }
+        document.body.removeChild(textarea);
+    }
+
+    if (button) {
+        const originalLabel = button.textContent;
+        button.disabled = true;
+        button.textContent = success ? 'Copied!' : 'Copy failed';
+        setTimeout(() => {
+            button.textContent = originalLabel;
+            button.disabled = false;
+        }, 1800);
+    }
+}
+
+document.querySelectorAll('[data-copy]').forEach((button) => {
+    button.addEventListener('click', () => {
+        const value = button.getAttribute('data-copy');
+        copyToClipboard(value, button);
+    });
+});
+
 document.querySelectorAll('.sidebar a').forEach((link) => {
     link.addEventListener('click', () => {
         closeSidebar();
