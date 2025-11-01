@@ -1,0 +1,21 @@
+<svg width="120" height="24" viewBox="0 0 120 24" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="5 out of 5 stars">
+  <title>5 out of 5 stars</title>
+  <defs>
+    <path id="star" d="M12 .75l3.053 6.188 6.828.993-4.94 4.816 1.167 6.81L12 15.813 5.892 19.557l1.167-6.81-4.94-4.816 6.828-.993L12 .75z"/>
+  </defs>
+  <g transform="translate(0 0)">
+    <use href="#star" fill="#fbbf24"/>
+  </g>
+  <g transform="translate(24 0)">
+    <use href="#star" fill="#fbbf24"/>
+  </g>
+  <g transform="translate(48 0)">
+    <use href="#star" fill="#fbbf24"/>
+  </g>
+  <g transform="translate(72 0)">
+    <use href="#star" fill="#fbbf24"/>
+  </g>
+  <g transform="translate(96 0)">
+    <use href="#star" fill="#fbbf24"/>
+  </g>
+</svg>
