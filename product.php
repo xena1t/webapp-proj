@@ -48,6 +48,12 @@ if (!empty($product['spec_json'])) {
         $specs = $decoded;
     }
 }
+$wishlistProductIds = get_wishlist_product_ids();
+$isProductInWishlist = in_array((int) $product['id'], $wishlistProductIds, true);
+$currentDetailUrl = $_SERVER['REQUEST_URI'] ?? '/product.php?id=' . $product['id'];
+if (!str_starts_with($currentDetailUrl, '/')) {
+    $currentDetailUrl = '/' . ltrim($currentDetailUrl, '/');
+}
 ?>
 <?php $productImage = asset_url((string) $product['image_url']); ?>
 <section class="container product-detail">
@@ -88,6 +94,22 @@ if (!empty($product['spec_json'])) {
                 <input type="number" value="0" disabled>
                 <button type="button" class="btn-secondary" disabled>Sold Out</button>
             </form>
+        <?php endif; ?>
+
+        <?php if (is_user_logged_in()): ?>
+            <form class="wishlist-inline" method="post" action="wishlist.php">
+                <input type="hidden" name="product_id" value="<?= (int) $product['id'] ?>">
+                <input type="hidden" name="return_to" value="<?= htmlspecialchars($currentDetailUrl) ?>">
+                <?php if ($isProductInWishlist): ?>
+                    <input type="hidden" name="action" value="remove">
+                    <button type="submit" class="btn-ghost active" aria-pressed="true">Remove from wishlist</button>
+                <?php else: ?>
+                    <input type="hidden" name="action" value="add">
+                    <button type="submit" class="btn-ghost" aria-pressed="false">Add to wishlist</button>
+                <?php endif; ?>
+            </form>
+        <?php else: ?>
+            <p class="wishlist-hint"><a href="login.php">Log in</a> to save this item to your wishlist.</p>
         <?php endif; ?>
 
     </div>
