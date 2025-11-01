@@ -1819,6 +1819,53 @@ input[type="email"]:focus {
   box-shadow: 0 8px 18px rgba(15, 139, 255, 0.15);
 }
 
+.category-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.category-table th,
+.category-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+    vertical-align: top;
+}
+
+.category-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.category-inline-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.category-inline-form input[type="text"] {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    background: #fff;
+    min-width: 10rem;
+}
+
+.category-inline-form input[type="text"]:focus {
+    border-color: var(--accent);
+    outline: 2px solid var(--accent-soft);
+}
+
+.category-note {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
 /* status chips in the table */
 .status-badge {
   display: inline-flex;

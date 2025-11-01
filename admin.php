@@ -75,6 +75,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Skip further processing for this request.
     }
 
+    /* ---------- RENAME CATEGORY ---------- */
+    elseif ($action === 'rename_category') {
+        $currentName = trim($_POST['current_name'] ?? '');
+        $newName = trim($_POST['updated_name'] ?? '');
+
+        if ($currentName === '' || $newName === '') {
+            $errors[] = 'Both the current and new category names are required.';
+        } else {
+            try {
+                $pdo = get_db_connection();
+                ensure_categories_table($pdo);
+                rename_category($pdo, $currentName, $newName);
+                $categorySuccess = 'Category "' . htmlspecialchars($currentName) . '" renamed to "' . htmlspecialchars($newName) . '".';
+            } catch (Throwable $e) {
+                $errors[] = 'Failed to rename category: ' . $e->getMessage();
+            }
+        }
+    }
+
+    /* ---------- DELETE CATEGORY ---------- */
+    elseif ($action === 'delete_category') {
+        $categoryName = trim($_POST['category_name'] ?? '');
+        $reassignTarget = trim($_POST['reassign_to'] ?? '');
+        $reassignTarget = $reassignTarget !== '' ? $reassignTarget : null;
+
+        if ($categoryName === '') {
+            $errors[] = 'Select a category to delete.';
+        } else {
+            try {
+                $pdo = get_db_connection();
+                ensure_categories_table($pdo);
+                delete_category($pdo, $categoryName, $reassignTarget);
+
+                if ($reassignTarget !== null) {
+                    $categorySuccess = 'Category "' . htmlspecialchars($categoryName) . '" deleted. Products were reassigned to "' . htmlspecialchars($reassignTarget) . '".';
+                } else {
+                    $categorySuccess = 'Category "' . htmlspecialchars($categoryName) . '" deleted.';
+                }
+            } catch (Throwable $e) {
+                $errors[] = 'Failed to delete category: ' . $e->getMessage();
+            }
+        }
+    }
+
     /* ---------- ADD ---------- */
     elseif ($action === 'add') {
         $name        = trim($_POST['name'] ?? '');
@@ -383,6 +427,7 @@ if (!in_array($show, ['active', 'all', 'archived'], true)) {
 // Grab everything once (admin view needs the full set), then filter in PHP.
 $allProductsRaw = fetch_products_by_category(null, null, false); // false = include archived too
 $categoryOptions = fetch_categories(false);
+$categoryUsage = fetch_category_product_counts(false);
 
 $allProducts = array_values(array_filter($allProductsRaw, function ($p) use ($show) {
     $active = (int)($p['is_active'] ?? 1) === 1;
@@ -435,13 +480,54 @@ require_once __DIR__ . '/includes/header.php';
             </div>
         </form>
         <?php if ($categoryOptions): ?>
-            <p style="margin-top:1rem;">Existing categories:
-                <span style="display:inline-flex; flex-wrap:wrap; gap:.5rem;">
-                    <?php foreach ($categoryOptions as $categoryOption): ?>
-                        <span class="tag"><?= htmlspecialchars($categoryOption) ?></span>
-                    <?php endforeach; ?>
-                </span>
-            </p>
+            <div class="table-responsive" style="margin-top:1.5rem;">
+                <table class="category-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Category</th>
+                            <th scope="col">Products</th>
+                            <th scope="col">Rename</th>
+                            <th scope="col">Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($categoryOptions as $index => $categoryOption): ?>
+                            <?php
+                            $usage = $categoryUsage[$categoryOption] ?? 0;
+                            $requiresReassign = $usage > 0;
+                            ?>
+                            <tr>
+                                <td><?= htmlspecialchars($categoryOption) ?></td>
+                                <td><?= $usage ?></td>
+                                <td>
+                                    <form method="post" class="category-inline-form">
+                                        <input type="hidden" name="action" value="rename_category">
+                                        <input type="hidden" name="current_name" value="<?= htmlspecialchars($categoryOption) ?>">
+                                        <label class="sr-only" for="rename-category-<?= $index ?>">Rename <?= htmlspecialchars($categoryOption) ?></label>
+                                        <input type="text" id="rename-category-<?= $index ?>" name="updated_name" required value="<?= htmlspecialchars($categoryOption) ?>">
+                                        <button type="submit" class="btn-secondary btn-sm">Rename</button>
+                                    </form>
+                                </td>
+                                <td>
+                                    <form method="post" class="category-inline-form">
+                                        <input type="hidden" name="action" value="delete_category">
+                                        <input type="hidden" name="category_name" value="<?= htmlspecialchars($categoryOption) ?>">
+                                        <?php if ($requiresReassign): ?>
+                                            <label class="sr-only" for="reassign-category-<?= $index ?>">Reassign products from <?= htmlspecialchars($categoryOption) ?></label>
+                                            <input type="text" id="reassign-category-<?= $index ?>" name="reassign_to" list="category-options" placeholder="Select destination" required>
+                                            <p class="category-note">Move products before deleting.</p>
+                                        <?php else: ?>
+                                            <input type="hidden" name="reassign_to" value="">
+                                            <p class="category-note text-muted">No products assigned.</p>
+                                        <?php endif; ?>
+                                        <button type="submit" class="btn-secondary btn-sm">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
         <?php else: ?>
             <p style="margin-top:1rem;" class="text-muted">No categories yet.</p>
         <?php endif; ?>

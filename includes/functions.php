@@ -107,6 +107,159 @@ function ensure_categories_table(PDO $pdo): void
     categories_table_exists($pdo, true);
 }
 
+function rename_category(PDO $pdo, string $currentName, string $newName): array
+{
+    $currentName = trim($currentName);
+    $newName = trim($newName);
+
+    if ($currentName === '' || $newName === '') {
+        throw new InvalidArgumentException('Both the current and new category names are required.');
+    }
+
+    if ($currentName === $newName) {
+        throw new InvalidArgumentException('The new category name must be different.');
+    }
+
+    $hasTable = categories_table_exists($pdo);
+
+    try {
+        $pdo->beginTransaction();
+
+        if ($hasTable) {
+            $duplicateCheck = $pdo->prepare('SELECT 1 FROM categories WHERE name = :name LIMIT 1');
+            $duplicateCheck->execute(['name' => $newName]);
+            if ($duplicateCheck->fetchColumn()) {
+                throw new RuntimeException('A category with that name already exists.');
+            }
+        }
+
+        $productDuplicateCheck = $pdo->prepare('SELECT 1 FROM products WHERE category = :name LIMIT 1');
+        $productDuplicateCheck->execute(['name' => $newName]);
+        if ($productDuplicateCheck->fetchColumn()) {
+            throw new RuntimeException('A category with that name already exists.');
+        }
+
+        $categoriesUpdated = 0;
+        if ($hasTable) {
+            $updateCategory = $pdo->prepare('UPDATE categories SET name = :newName WHERE name = :currentName');
+            $updateCategory->execute([
+                'newName' => $newName,
+                'currentName' => $currentName,
+            ]);
+            $categoriesUpdated = $updateCategory->rowCount();
+        }
+
+        $updateProducts = $pdo->prepare('UPDATE products SET category = :newName WHERE category = :currentName');
+        $updateProducts->execute([
+            'newName' => $newName,
+            'currentName' => $currentName,
+        ]);
+        $productsUpdated = $updateProducts->rowCount();
+
+        $pdo->commit();
+
+        return [
+            'categoriesUpdated' => $categoriesUpdated,
+            'productsUpdated' => $productsUpdated,
+        ];
+    } catch (Throwable $exception) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $exception;
+    }
+}
+
+function delete_category(PDO $pdo, string $categoryName, ?string $reassignTo = null): array
+{
+    $categoryName = trim($categoryName);
+    $reassignTo = $reassignTo !== null ? trim($reassignTo) : null;
+
+    if ($categoryName === '') {
+        throw new InvalidArgumentException('A category name is required.');
+    }
+
+    if ($reassignTo !== null && $reassignTo === '') {
+        $reassignTo = null;
+    }
+
+    if ($reassignTo !== null && $reassignTo === $categoryName) {
+        throw new InvalidArgumentException('Please choose a different category to reassign products to.');
+    }
+
+    $hasTable = categories_table_exists($pdo);
+
+    $productCountStmt = $pdo->prepare('SELECT COUNT(*) FROM products WHERE category = :name');
+    $productCountStmt->execute(['name' => $categoryName]);
+    $productsUsingCategory = (int)$productCountStmt->fetchColumn();
+
+    if ($productsUsingCategory > 0 && $reassignTo === null) {
+        throw new RuntimeException('Products are still assigned to this category. Please reassign them before deleting.');
+    }
+
+    try {
+        $pdo->beginTransaction();
+
+        $productsReassigned = 0;
+        if ($productsUsingCategory > 0 && $reassignTo !== null) {
+            if ($hasTable) {
+                $insertTarget = $pdo->prepare('INSERT IGNORE INTO categories (name) VALUES (:name)');
+                $insertTarget->execute(['name' => $reassignTo]);
+            }
+
+            $reassignStmt = $pdo->prepare('UPDATE products SET category = :newName WHERE category = :currentName');
+            $reassignStmt->execute([
+                'newName' => $reassignTo,
+                'currentName' => $categoryName,
+            ]);
+            $productsReassigned = $reassignStmt->rowCount();
+        }
+
+        $categoriesRemoved = 0;
+        if ($hasTable) {
+            $deleteStmt = $pdo->prepare('DELETE FROM categories WHERE name = :name');
+            $deleteStmt->execute(['name' => $categoryName]);
+            $categoriesRemoved = $deleteStmt->rowCount();
+        }
+
+        $pdo->commit();
+
+        return [
+            'productsReassigned' => $productsReassigned,
+            'categoriesRemoved' => $categoriesRemoved,
+        ];
+    } catch (Throwable $exception) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $exception;
+    }
+}
+
+function fetch_category_product_counts(bool $onlyActive = false): array
+{
+    try {
+        $pdo = get_db_connection();
+        $sql = 'SELECT category, COUNT(*) AS total FROM products';
+        if ($onlyActive) {
+            $sql .= ' WHERE is_active = 1';
+        }
+        $sql .= ' GROUP BY category';
+
+        $stmt = $pdo->query($sql);
+        $rows = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+
+        if (!$rows) {
+            return [];
+        }
+
+        return array_map('intval', $rows);
+    } catch (Throwable $exception) {
+        error_log('Failed to compute category usage: ' . $exception->getMessage());
+        return [];
+    }
+}
+
 function fetch_featured_products(int $limit = 3, bool $onlyActive = true, bool $suppressErrors = true): array
 {
     try {
