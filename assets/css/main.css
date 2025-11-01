@@ -1129,6 +1129,193 @@ input[type="radio"] {
     margin: 0 auto;
 }
 
+.order-tracking {
+    margin-top: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.tracking-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.tracking-header h3 {
+    margin: 0;
+}
+
+.tracking-eta {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.98rem;
+}
+
+.tracking-countdown {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.tracking-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+}
+
+.tracking-progress-bar {
+    position: relative;
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.1);
+    overflow: hidden;
+}
+
+.tracking-progress-bar span {
+    position: absolute;
+    inset: 0;
+    width: 0;
+    background: linear-gradient(90deg, var(--accent), #6a5af9);
+    border-radius: inherit;
+    transition: width 0.5s ease;
+}
+
+.tracking-timeline {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 1.75rem;
+}
+
+.tracking-stage {
+    position: relative;
+    padding-left: 2.5rem;
+}
+
+.tracking-stage::before {
+    content: '';
+    position: absolute;
+    left: 1.05rem;
+    top: 1.25rem;
+    bottom: -1.75rem;
+    width: 2px;
+    background: rgba(15, 23, 42, 0.12);
+}
+
+.tracking-stage:last-child::before {
+    bottom: 0;
+}
+
+.stage-indicator {
+    position: absolute;
+    left: 0;
+    top: 0.35rem;
+    width: 2.1rem;
+    height: 2.1rem;
+    display: grid;
+    place-items: center;
+}
+
+.stage-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.18);
+    box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.08);
+    transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.tracking-stage.is-reached .stage-dot {
+    background: var(--accent);
+    box-shadow: 0 0 0 5px rgba(15, 139, 255, 0.25);
+}
+
+.tracking-stage.is-current .stage-dot {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 6px rgba(15, 139, 255, 0.35);
+}
+
+.stage-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.stage-label {
+    margin: 0;
+    font-weight: 600;
+}
+
+.stage-meta {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.tracking-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
+    padding-top: 1.5rem;
+}
+
+.tracking-meta {
+    display: grid;
+    gap: 1rem;
+}
+
+.meta-label {
+    display: block;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+}
+
+.meta-value {
+    font-weight: 600;
+}
+
+.tracking-id {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.tracking-id code {
+    background: rgba(15, 23, 42, 0.06);
+    padding: 0.35rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.95rem;
+}
+
+.btn-copy {
+    font-size: 0.85rem;
+    padding-inline: 1.1rem;
+    padding-block: 0.4rem;
+}
+
+.tracking-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+    .tracking-meta {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .tracking-actions {
+        flex-direction: row;
+        align-items: center;
+        gap: 1rem;
+    }
+}
+
 .order-history {
     display: flex;
     flex-direction: column;
