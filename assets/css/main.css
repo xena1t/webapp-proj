@@ -1896,6 +1896,138 @@ details form + form {
   white-space: nowrap;
 }
 
+
+/* =========================
+   REVIEWS
+   ========================= */
+
+.reviews-summary {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  margin-top: 2rem;
+}
+
+.summary-card {
+  background: var(--card-bg);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  padding: 1.75rem;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.summary-card h2 {
+  margin: 0;
+  font-size: clamp(2.4rem, 4vw, 3rem);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.summary-card h2 span {
+  font-size: 1.5rem;
+  color: #fbbf24;
+}
+
+.summary-card h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.summary-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.summary-meta {
+  margin: 0;
+  color: var(--text-secondary);
+  opacity: 0.75;
+}
+
+.rating-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.rating-breakdown dt {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.rating-breakdown dd {
+  margin: 0.35rem 0 0 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.breakdown-bar {
+  position: relative;
+  flex: 1 1 auto;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.35);
+  overflow: hidden;
+}
+
+.breakdown-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.85), rgba(250, 204, 21, 0.95));
+}
+
+.breakdown-count {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.rating-image {
+  width: 110px;
+  height: auto;
+  display: block;
+}
+
+.rating-cell {
+  min-width: 140px;
+}
+
+.reviewer-email {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.review-order {
+  color: var(--text-secondary);
+  opacity: 0.75;
+  font-size: 0.85rem;
+  margin-top: 0.35rem;
+}
+
+.empty-state {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.empty-state a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.empty-state a:hover {
+  text-decoration: underline;
+}
+
 /* =========================
    PRODUCT CARD IMAGES
    ========================= */
