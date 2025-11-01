@@ -39,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$errors) {
         $pdo = get_db_connection();
+        $normalizedEmail = null;
 
         $orderStmt = $pdo->prepare('SELECT id, customer_email, customer_name FROM orders WHERE id = :id LIMIT 1');
         $orderStmt->execute(['id' => $formValues['order_id']]);
@@ -46,13 +47,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!$order) {
             $errors[] = 'We could not find an order with that number. Please double-check and try again.';
-        } elseif (strcasecmp($order['customer_email'], $formValues['email']) !== 0) {
-            $errors[] = 'The email does not match the one on file for that order.';
         } else {
+            $normalizedEmail = normalize_email($formValues['email']);
+            if (strcasecmp($order['customer_email'], $normalizedEmail) !== 0) {
+                $errors[] = 'The email does not match the one on file for that order.';
+            }
+        }
+
+        if (!$errors && $normalizedEmail !== null) {
             $existing = $pdo->prepare('SELECT id FROM order_reviews WHERE order_id = :order_id AND reviewer_email = :email LIMIT 1');
             $existing->execute([
                 'order_id' => $formValues['order_id'],
-                'email' => strtolower($formValues['email']),
+                'email' => $normalizedEmail,
             ]);
 
             if ($existing->fetch()) {
@@ -60,21 +66,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        if (!$errors) {
-            $insert = $pdo->prepare('INSERT INTO order_reviews (order_id, reviewer_name, reviewer_email, rating, comments) VALUES (:order_id, :name, :email, :rating, :comments)');
-            $insert->execute([
-                'order_id' => $formValues['order_id'],
-                'name' => $formValues['name'],
-                'email' => strtolower($formValues['email']),
-                'rating' => $formValues['rating'],
-                'comments' => $formValues['comments'] !== '' ? $formValues['comments'] : null,
-            ]);
+        if (!$errors && $normalizedEmail !== null) {
+            try {
+                $insert = $pdo->prepare('INSERT INTO order_reviews (order_id, reviewer_name, reviewer_email, rating, comments) VALUES (:order_id, :name, :email, :rating, :comments)');
+                $insert->execute([
+                    'order_id' => $formValues['order_id'],
+                    'name' => $formValues['name'],
+                    'email' => $normalizedEmail,
+                    'rating' => $formValues['rating'],
+                    'comments' => $formValues['comments'] !== '' ? $formValues['comments'] : null,
+                ]);
 
-            $successMessage = 'Thanks for leaving a review! Your insights help the community make confident choices.';
-            $formValues['rating'] = '';
-            $formValues['comments'] = '';
-            if ($formValues['name'] === '' && isset($order['customer_name'])) {
-                $formValues['name'] = $order['customer_name'];
+                $successMessage = 'Thanks for leaving a review! Your insights help the community make confident choices.';
+                $formValues['rating'] = '';
+                $formValues['comments'] = '';
+                if ($formValues['name'] === '' && isset($order['customer_name'])) {
+                    $formValues['name'] = $order['customer_name'];
+                }
+            } catch (PDOException $exception) {
+                if ((int) ($exception->errorInfo[1] ?? 0) === 1062) {
+                    $errors[] = 'It looks like you have already shared a review for this order. Thank you!';
+                } else {
+                    throw $exception;
+                }
             }
         }
     }

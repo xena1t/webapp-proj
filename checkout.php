@@ -12,6 +12,8 @@ if (!is_user_logged_in()) {
 }
 
 $userId = get_authenticated_user_id();
+$authenticatedUser = get_authenticated_user();
+$checkoutEmail = isset($authenticatedUser['email']) ? trim((string) $authenticatedUser['email']) : '';
 
 $appliedDiscount = null;
 $discountMessage = null;
@@ -34,6 +36,13 @@ $cartItems = fetch_cart_items();
 $orderErrors = [];
 $orderSuccess = null;
 
+$formData = [
+    'name' => sanitize_string($_POST['name'] ?? ''),
+    'address' => sanitize_string($_POST['address'] ?? ''),
+    'payment_method' => sanitize_string($_POST['payment_method'] ?? ''),
+    'promo' => sanitize_string($_POST['promo'] ?? ''),
+];
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['update_cart']) && isset($_POST['quantities']) && is_array($_POST['quantities'])) {
         foreach ($_POST['quantities'] as $productId => $quantity) {
@@ -44,13 +53,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (isset($_POST['apply_discount'])) {
-        $promo = sanitize_string($_POST['promo'] ?? '');
-        $emailForDiscount = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
+        $promo = $formData['promo'];
+        $emailForDiscount = filter_var($checkoutEmail, FILTER_VALIDATE_EMAIL) ? $checkoutEmail : null;
 
         if ($promo === '') {
             $discountError = 'Enter your discount code to apply it.';
         } elseif (!$emailForDiscount) {
-            $discountError = 'Enter the email tied to your newsletter subscription to use the discount.';
+            $discountError = 'We could not verify the email on your account. Please sign out and back in before applying the discount.';
         } else {
             $validation = validate_discount_code($promo, $emailForDiscount, $userId);
             if ($validation['valid']) {
@@ -73,21 +82,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($cartItems)) {
             $orderErrors[] = 'Your cart is empty. Add products before checking out.';
         } else {
-            $name = sanitize_string($_POST['name'] ?? '');
-            $email = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
-            $address = sanitize_string($_POST['address'] ?? '');
-            $payment = sanitize_string($_POST['payment_method'] ?? '');
-            $promo = sanitize_string($_POST['promo'] ?? '');
+            $name = $formData['name'];
+            $email = filter_var($checkoutEmail, FILTER_VALIDATE_EMAIL) ? $checkoutEmail : false;
+            $address = $formData['address'];
+            $payment = $formData['payment_method'];
+            $promo = $formData['promo'];
             $discountForOrder = null;
 
-            if (!$name) {
+            if ($name === '') {
                 $orderErrors[] = 'Please provide your full name.';
+            } elseif (!preg_match("/^[\\p{L}\\s'\-]{2,}$/u", $name)) {
+                $orderErrors[] = 'Your name should be at least two characters and contain only letters, spaces, hyphens, or apostrophes.';
             }
             if (!$email) {
-                $orderErrors[] = 'Please provide a valid email address.';
+                $orderErrors[] = 'We could not determine the email tied to your account. Please sign in again.';
             }
-            if (!$address) {
+            if ($address === '') {
                 $orderErrors[] = 'Please provide a shipping address.';
+            } elseif (mb_strlen($address) < 10) {
+                $orderErrors[] = 'Your shipping address should be at least 10 characters long so we can deliver accurately.';
             }
             if (!$payment) {
                 $orderErrors[] = 'Please choose a payment method.';
@@ -273,29 +286,29 @@ require_once __DIR__ . '/includes/header.php';
                 <input type="hidden" name="place_order" value="1">
                 <div>
                     <label for="name">Full name</label>
-                    <input type="text" id="name" name="name" value="<?= htmlspecialchars($_POST['name'] ?? '') ?>" required>
+                    <input type="text" id="name" name="name" value="<?= htmlspecialchars($formData['name']) ?>" required minlength="2" pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-\s]{2,}$" title="Use at least two letters. Hyphens, apostrophes, and spaces are allowed.">
                 </div>
                 <div>
                     <label for="email">Email address</label>
-                    <input type="email" id="email" name="email" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" required>
+                    <input type="email" id="email" name="email" value="<?= htmlspecialchars($checkoutEmail) ?>" required readonly>
                 </div>
                 <div>
                     <label for="address">Shipping address</label>
-                    <textarea id="address" name="address" required><?= htmlspecialchars($_POST['address'] ?? '') ?></textarea>
+                    <textarea id="address" name="address" required minlength="10" title="Provide the full street address for delivery."><?= htmlspecialchars($formData['address']) ?></textarea>
                 </div>
                 <div>
                     <label for="payment_method">Payment method</label>
                     <select id="payment_method" name="payment_method" required>
                         <option value="">Select</option>
-                        <option value="Card" <?= (($_POST['payment_method'] ?? '') === 'Card') ? 'selected' : '' ?>>Credit/Debit Card</option>
-                        <option value="PayNow" <?= (($_POST['payment_method'] ?? '') === 'PayNow') ? 'selected' : '' ?>>PayNow</option>
-                        <option value="Bank Transfer" <?= (($_POST['payment_method'] ?? '') === 'Bank Transfer') ? 'selected' : '' ?>>Bank Transfer</option>
+                        <option value="Card" <?= ($formData['payment_method'] === 'Card') ? 'selected' : '' ?>>Credit/Debit Card</option>
+                        <option value="PayNow" <?= ($formData['payment_method'] === 'PayNow') ? 'selected' : '' ?>>PayNow</option>
+                        <option value="Bank Transfer" <?= ($formData['payment_method'] === 'Bank Transfer') ? 'selected' : '' ?>>Bank Transfer</option>
                     </select>
                 </div>
                 <div>
                     <label for="promo">Discount code</label>
                     <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-                        <input type="text" id="promo" name="promo" value="<?= htmlspecialchars($appliedDiscount['code'] ?? ($_POST['promo'] ?? '')) ?>" style="flex:1 1 220px;">
+                        <input type="text" id="promo" name="promo" value="<?= htmlspecialchars($appliedDiscount['code'] ?? $formData['promo']) ?>" style="flex:1 1 220px;">
                         <?php if ($appliedDiscount): ?>
                             <button type="submit" class="btn-secondary" name="remove_discount" value="1">Remove</button>
                         <?php else: ?>
