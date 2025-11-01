@@ -139,6 +139,9 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                     <!-- <a class="top-link <?= $currentPage === 'wishlist.php' ? 'active' : '' ?>" href="wishlist.php">Wishlist</a> -->
                     <a class="top-link <?= $currentPage === 'checkout.php' ? 'active' : '' ?>" href="checkout.php">Checkout</a>
                     <!-- <a class="top-link <?= $currentPage === 'order-status.php' ? 'active' : '' ?>" href="order-status.php">Track order</a> -->
+                    <a class="top-link <?= $currentPage === 'review.php' ? 'active' : '' ?>" href="review.php">Leave review</a>
+                    <a class="top-link <?= $currentPage === 'about.php' ? 'active' : '' ?>" href="about.php">About</a>
+                    <a class="top-link <?= $currentPage === 'contact.php' ? 'active' : '' ?>" href="contact.php">Contact</a>
                     <?php if (is_user_logged_in()): ?>
                         <a class="top-link <?= $currentPage === 'account_orders.php' ? 'active' : '' ?>"
                             href="account_orders.php">My orders</a>

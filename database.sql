@@ -8,6 +8,7 @@ DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS cart_items;
 DROP TABLE IF EXISTS wishlist_items;
 DROP TABLE IF EXISTS discount_codes;
+DROP TABLE IF EXISTS order_reviews;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS newsletter_subscribers;
 DROP TABLE IF EXISTS products;
@@ -59,6 +60,20 @@ CREATE TABLE orders (
     KEY idx_orders_created_at (created_at),
     KEY idx_orders_user (user_id),
     CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE order_reviews (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    reviewer_name VARCHAR(150) NOT NULL,
+    reviewer_email VARCHAR(150) NOT NULL,
+    rating TINYINT NOT NULL,
+    comments TEXT DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_order_reviewer (order_id, reviewer_email),
+    KEY idx_order_reviews_rating (rating),
+    KEY idx_order_reviews_email (reviewer_email),
+    CONSTRAINT fk_order_reviews_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE order_items (
