@@ -6,6 +6,7 @@ $activeCategory = isset($_GET['category']) ? trim((string) $_GET['category']) : 
 if ($activeCategory === '') {
     $activeCategory = null;
 }
+$searchQueryValue = isset($_GET['q']) ? trim((string) $_GET['q']) : '';
 $currentPage = basename($_SERVER['PHP_SELF']);
 $shopExpanded = $currentPage === 'products.php';
 $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $currentPage));
@@ -57,6 +58,8 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
 
                         <li><a class="sidebar-link <?= $currentPage === 'checkout.php' ? 'active' : '' ?>"
                                 href="checkout.php">Cart</a></li>
+                        <li><a class="sidebar-link <?= $currentPage === 'wishlist.php' ? 'active' : '' ?>"
+                                href="wishlist.php">Wishlist</a></li>
                         <li><a class="sidebar-link <?= $currentPage === 'order-status.php' ? 'active' : '' ?>"
                                 href="order-status.php">Order Status</a></li>
                         <?php if (is_user_logged_in()): ?>
@@ -119,15 +122,27 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                     <span class="sr-only">Toggle navigation</span>
                     ☰
                 </button>
+                <form class="top-search" action="products.php" method="get" role="search">
+                    <label class="sr-only" for="topSearch">Search products</label>
+                    <input type="search"
+                        id="topSearch"
+                        name="q"
+                        placeholder="Search for products"
+                        value="<?= htmlspecialchars($searchQueryValue) ?>"
+                        aria-label="Search for products">
+                    <?php if ($currentPage === 'products.php' && $activeCategory): ?>
+                        <input type="hidden" name="category" value="<?= htmlspecialchars($activeCategory) ?>">
+                    <?php endif; ?>
+                    <button type="submit" class="btn-search">Search</button>
+                </form>
                 <div class="top-links">
-                    <a class="top-link" href="checkout.php">Checkout</a>
-                    <a class="top-link" href="order-status.php">Track order</a>
+                    <a class="top-link <?= $currentPage === 'wishlist.php' ? 'active' : '' ?>" href="wishlist.php">Wishlist</a>
+                    <a class="top-link <?= $currentPage === 'checkout.php' ? 'active' : '' ?>" href="checkout.php">Checkout</a>
+                    <a class="top-link <?= $currentPage === 'order-status.php' ? 'active' : '' ?>" href="order-status.php">Track order</a>
                     <?php if (is_user_logged_in()): ?>
                         <a class="top-link <?= $currentPage === 'account_orders.php' ? 'active' : '' ?>"
                             href="account_orders.php">My orders</a>
                     <?php endif; ?>
-
-                    <!-- top bar -->
 
                     <?php if (isset($_SESSION['user'])): ?>
                         <span class="welcome">
@@ -138,9 +153,6 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                     <?php else: ?>
                         <a class="login-link" href="login.php">Login</a>
                     <?php endif; ?>
-
-
                 </div>
-
             </header>
             <main class="site-main">

@@ -6,6 +6,7 @@ USE techmart;
 SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS cart_items;
+DROP TABLE IF EXISTS wishlist_items;
 DROP TABLE IF EXISTS discount_codes;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS newsletter_subscribers;
@@ -112,6 +113,17 @@ CREATE TABLE cart_items (
     KEY idx_cart_items_product (product_id),
     CONSTRAINT fk_cart_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_cart_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE wishlist_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    product_id INT NOT NULL,
+    added_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_wishlist_user_product (user_id, product_id),
+    KEY idx_wishlist_product (product_id),
+    CONSTRAINT fk_wishlist_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_wishlist_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO products (name, category, tagline, description, price, stock, image_url, spec_json, featured) VALUES
