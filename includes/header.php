@@ -60,8 +60,8 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                                 href="checkout.php">Cart</a></li>
                         <li><a class="sidebar-link <?= $currentPage === 'wishlist.php' ? 'active' : '' ?>"
                                 href="wishlist.php">Wishlist</a></li>
-                        <li><a class="sidebar-link <?= $currentPage === 'order-status.php' ? 'active' : '' ?>"
-                                href="order-status.php">Order Status</a></li>
+                        <!-- <li><a class="sidebar-link <?= $currentPage === 'order-status.php' ? 'active' : '' ?>"
+                                href="order-status.php">Order Status</a></li> -->
                         <?php if (is_user_logged_in()): ?>
                             <li><a class="sidebar-link <?= $currentPage === 'account_orders.php' ? 'active' : '' ?>"
                                     href="account_orders.php">My Orders</a></li>
@@ -84,7 +84,7 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                                             href="admin_report.php">Sales Report</a></li>
                                 </ul>
                             </li>
-                        <?php endif; ?>
+                        <?php endif; ?>`
 
                     </ul>
                 </nav>
@@ -136,9 +136,9 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                     <button type="submit" class="btn-search">Search</button>
                 </form>
                 <div class="top-links">
-                    <a class="top-link <?= $currentPage === 'wishlist.php' ? 'active' : '' ?>" href="wishlist.php">Wishlist</a>
+                    <!-- <a class="top-link <?= $currentPage === 'wishlist.php' ? 'active' : '' ?>" href="wishlist.php">Wishlist</a> -->
                     <a class="top-link <?= $currentPage === 'checkout.php' ? 'active' : '' ?>" href="checkout.php">Checkout</a>
-                    <a class="top-link <?= $currentPage === 'order-status.php' ? 'active' : '' ?>" href="order-status.php">Track order</a>
+                    <!-- <a class="top-link <?= $currentPage === 'order-status.php' ? 'active' : '' ?>" href="order-status.php">Track order</a> -->
                     <?php if (is_user_logged_in()): ?>
                         <a class="top-link <?= $currentPage === 'account_orders.php' ? 'active' : '' ?>"
                             href="account_orders.php">My orders</a>

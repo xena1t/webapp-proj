@@ -156,10 +156,10 @@ if ($orderId && $orderEmail) {
 }
 ?>
 <section class="container">
-    <h1 class="section-title">Track your order</h1>
-    <p>Enter your order number and email to view the latest updates.</p>
+    <!-- <h1 class="section-title">Track your order</h1>
+    <p>Enter your order number and email to view the latest updates.</p> -->
 
-    <form method="post" class="form-grid" style="margin-top: 2rem; max-width: 520px;">
+    <!-- <form method="post" class="form-grid" style="margin-top: 2rem; max-width: 520px;">
         <div>
             <label for="order">Order number</label>
             <input type="number" id="order" name="order" required value="<?= $orderId ? htmlspecialchars((string) $orderId) : '' ?>">
@@ -169,7 +169,7 @@ if ($orderId && $orderEmail) {
             <input type="email" id="email" name="email" required value="<?= $orderEmail ? htmlspecialchars($orderEmail) : '' ?>">
         </div>
         <button type="submit" class="btn-primary">Check status</button>
-    </form>
+    </form> -->
 
     <?php if ($statusError): ?>
         <div class="notice" style="margin-top: 2rem;">
@@ -240,7 +240,7 @@ if ($orderId && $orderEmail) {
                             </div>
                         </div>
                         <div class="tracking-actions">
-                            <a class="btn-secondary" href="<?= htmlspecialchars($courierMeta['url']) ?>" target="_blank" rel="noopener">Open courier site</a>
+                            <a class="btn-secondary" href="https://www.ninjavan.co/en-sg" rel="https://www.ninjavan.co/en-sg">Open courier site</a>
                             <a class="btn-primary" href="mailto:support@techmart.local?subject=Delivery%20help%20for%20order%20%23<?= urlencode((string) $order['id']) ?>">Contact delivery support</a>
                         </div>
                     </div>
