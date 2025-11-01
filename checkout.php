@@ -38,7 +38,11 @@ $orderSuccess = null;
 
 $formData = [
     'name' => sanitize_string($_POST['name'] ?? ''),
-    'address' => sanitize_string($_POST['address'] ?? ''),
+    'address_line1' => sanitize_string($_POST['address_line1'] ?? ''),
+    'address_line2' => sanitize_string($_POST['address_line2'] ?? ''),
+    'city' => sanitize_string($_POST['city'] ?? ''),
+    'state' => sanitize_string($_POST['state'] ?? ''),
+    'postal_code' => sanitize_string($_POST['postal_code'] ?? ''),
     'payment_method' => sanitize_string($_POST['payment_method'] ?? ''),
     'promo' => sanitize_string($_POST['promo'] ?? ''),
 ];
@@ -84,7 +88,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $name = $formData['name'];
             $email = filter_var($checkoutEmail, FILTER_VALIDATE_EMAIL) ? $checkoutEmail : false;
-            $address = $formData['address'];
+            $addressLine1 = $formData['address_line1'];
+            $addressLine2 = $formData['address_line2'];
+            $city = $formData['city'];
+            $state = $formData['state'];
+            $postalCode = $formData['postal_code'];
+            $shippingAddress = null;
             $payment = $formData['payment_method'];
             $promo = $formData['promo'];
             $discountForOrder = null;
@@ -97,16 +106,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$email) {
                 $orderErrors[] = 'We could not determine the email tied to your account. Please sign in again.';
             }
-            if ($address === '') {
-                $orderErrors[] = 'Please provide a shipping address.';
-            } elseif (mb_strlen($address) < 10) {
-                $orderErrors[] = 'Your shipping address should be at least 10 characters long so we can deliver accurately.';
+            if ($addressLine1 === '') {
+                $orderErrors[] = 'Please provide your street address.';
+            } elseif (mb_strlen($addressLine1) < 5) {
+                $orderErrors[] = 'Your street address should be at least 5 characters long so we can deliver accurately.';
+            }
+            if ($addressLine2 !== '' && mb_strlen($addressLine2) < 3) {
+                $orderErrors[] = 'Apartment or suite information should be at least 3 characters long.';
+            }
+            if ($city === '') {
+                $orderErrors[] = 'Please provide the city for your shipping address.';
+            } elseif (!preg_match("/^[\\p{L}\\s'\-]{2,}$/u", $city)) {
+                $orderErrors[] = 'City names should contain at least two letters and may include spaces, hyphens, or apostrophes.';
+            }
+            if ($state === '') {
+                $orderErrors[] = 'Please provide the state or province for your shipping address.';
+            } elseif (!preg_match("/^[\\p{L}\\s'\-]{2,}$/u", $state)) {
+                $orderErrors[] = 'State or province names should contain at least two letters and may include spaces, hyphens, or apostrophes.';
+            }
+            if ($postalCode === '') {
+                $orderErrors[] = 'Please provide the postal code for your shipping address.';
+            } elseif (!preg_match('/^[A-Za-z0-9\s\-]{3,10}$/', $postalCode)) {
+                $orderErrors[] = 'Postal codes should be 3 to 10 characters and contain only letters, numbers, spaces, or hyphens.';
             }
             if (!$payment) {
                 $orderErrors[] = 'Please choose a payment method.';
             }
 
             if (!$orderErrors) {
+                $addressParts = [$addressLine1];
+                if ($addressLine2 !== '') {
+                    $addressParts[] = $addressLine2;
+                }
+                $addressParts[] = sprintf('%s, %s %s', $city, $state, $postalCode);
+                $shippingAddress = implode("\n", $addressParts);
+
                 if ($promo !== '') {
                     if (!$email) {
                         $orderErrors[] = 'Enter your email before applying a discount code.';
@@ -146,7 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'user_id' => $userId,
                         'name' => $name,
                         'email' => $email,
-                        'address' => $address,
+                        'address' => $shippingAddress,
                         'total' => $totalsForOrder['total'],
                         'discount' => $totalsForOrder['discount'],
                         'status' => 'Processing',
@@ -293,8 +327,24 @@ require_once __DIR__ . '/includes/header.php';
                     <input type="email" id="email" name="email" value="<?= htmlspecialchars($checkoutEmail) ?>" required readonly>
                 </div>
                 <div>
-                    <label for="address">Shipping address</label>
-                    <textarea id="address" name="address" required minlength="10" title="Provide the full street address for delivery."><?= htmlspecialchars($formData['address']) ?></textarea>
+                    <label for="address_line1">Street address</label>
+                    <input type="text" id="address_line1" name="address_line1" value="<?= htmlspecialchars($formData['address_line1']) ?>" required minlength="5" title="Provide the street address for delivery.">
+                </div>
+                <div>
+                    <label for="address_line2">Apartment, suite, etc. (optional)</label>
+                    <input type="text" id="address_line2" name="address_line2" value="<?= htmlspecialchars($formData['address_line2']) ?>" minlength="3" title="Add apartment or suite information if needed.">
+                </div>
+                <div>
+                    <label for="city">City</label>
+                    <input type="text" id="city" name="city" value="<?= htmlspecialchars($formData['city']) ?>" required minlength="2" pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-\s]{2,}$" title="City names should include at least two letters. Hyphens, apostrophes, and spaces are allowed.">
+                </div>
+                <div>
+                    <label for="state">State / Province</label>
+                    <input type="text" id="state" name="state" value="<?= htmlspecialchars($formData['state']) ?>" required minlength="2" pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-\s]{2,}$" title="State or province names should include at least two letters. Hyphens, apostrophes, and spaces are allowed.">
+                </div>
+                <div>
+                    <label for="postal_code">Postal code</label>
+                    <input type="text" id="postal_code" name="postal_code" value="<?= htmlspecialchars($formData['postal_code']) ?>" required pattern="^[A-Za-z0-9\s\-]{3,10}$" title="Postal codes should be 3 to 10 characters using letters, numbers, spaces, or hyphens.">
                 </div>
                 <div>
                     <label for="payment_method">Payment method</label>
