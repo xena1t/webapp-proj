@@ -66,7 +66,7 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                                 href="order-status.php">Order Status</a></li> -->
                         <?php if (is_user_logged_in()): ?>
                             <li><a class="sidebar-link <?= $currentPage === 'account_orders.php' ? 'active' : '' ?>"
-                                    href="account_orders.php">My Orders</a></li>
+                                    href="account_orders.php">Order History</a></li>
                         <?php endif; ?>
                         <?php if (is_user_admin()): ?>
                             <li class="sidebar-dropdown">
@@ -90,9 +90,11 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                             </li>
                         <?php endif; ?>
                         <li><a class="sidebar-link <?= $currentPage === 'reviews.php' ? 'active' : '' ?>"
-                                href="reviews.php">Customer reviews</a></li>
+                                href="reviews.php">Customer Reviews</a></li>
                         <li><a class="sidebar-link <?= $currentPage === 'review.php' ? 'active' : '' ?>"
-                                href="review.php">Leave a review</a></li>
+                                href="review.php">Leave A Review</a></li>
+                        <li><a class="sidebar-link <?= $currentPage === 'contact.php' ? 'active' : '' ?>"
+                        href="contact.php">Contact</a></li>
                     </ul>
                 </nav>
                 <?php
@@ -146,11 +148,11 @@ $computedTitle = $pageTitle ?? ucfirst(str_replace(['.php', '-'], ['', ' '], $cu
                     <!-- <a class="top-link <?= $currentPage === 'review.php' ? 'active' : '' ?>" href="review.php">Leave
                         review</a>
                     <a class="top-link <?= $currentPage === 'about.php' ? 'active' : '' ?>" href="about.php">About</a> -->
-                    <a class="top-link <?= $currentPage === 'contact.php' ? 'active' : '' ?>"
-                        href="contact.php">Contact</a>
+                    <!-- <a class="top-link <?= $currentPage === 'contact.php' ? 'active' : '' ?>"
+                        href="contact.php">Contact</a> -->
                     <?php if (is_user_logged_in()): ?>
                         <a class="top-link <?= $currentPage === 'account_orders.php' ? 'active' : '' ?>"
-                            href="account_orders.php">My orders</a>
+                            href="account_orders.php">Order History</a>
                     <?php endif; ?>
 
                     <?php if (isset($_SESSION['user'])): ?>
