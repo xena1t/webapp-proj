@@ -29,6 +29,8 @@ if (!is_user_admin()) {
 $errors = [];
 $successMessage = null;
 $editFormOverrides = [];
+$categorySuccess = null;
+$maxCategoryLength = 22;
 $addFormData = [
     'name' => '',
     'category' => '',
@@ -47,8 +49,83 @@ $addFormData = [
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
+    /* ---------- ADD CATEGORY ---------- */
+    if ($action === 'add_category') {
+        $newCategory = trim($_POST['new_category'] ?? '');
+
+        if ($newCategory === '') {
+            $errors[] = 'Category name cannot be empty.';
+        } elseif ((function_exists('mb_strlen') ? mb_strlen($newCategory) : strlen($newCategory)) > $maxCategoryLength) {
+            $errors[] = 'Category name must be 22 characters or fewer.';
+        } else {
+            try {
+                $pdo = get_db_connection();
+                ensure_categories_table($pdo);
+
+                $stmt = $pdo->prepare('INSERT IGNORE INTO categories (name) VALUES (:name)');
+                $stmt->execute(['name' => $newCategory]);
+
+                if ($stmt->rowCount() === 0) {
+                    $errors[] = 'That category already exists.';
+                } else {
+                    $categorySuccess = 'Category "' . htmlspecialchars($newCategory) . '" added successfully.';
+                }
+            } catch (Throwable $e) {
+                $errors[] = 'Failed to add category: ' . $e->getMessage();
+            }
+        }
+
+        // Skip further processing for this request.
+    }
+
+    /* ---------- RENAME CATEGORY ---------- */
+    elseif ($action === 'rename_category') {
+        $currentName = trim($_POST['current_name'] ?? '');
+        $newName = trim($_POST['updated_name'] ?? '');
+
+        if ($currentName === '' || $newName === '') {
+            $errors[] = 'Both the current and new category names are required.';
+        } elseif ((function_exists('mb_strlen') ? mb_strlen($newName) : strlen($newName)) > $maxCategoryLength) {
+            $errors[] = 'Category name must be 22 characters or fewer.';
+        } else {
+            try {
+                $pdo = get_db_connection();
+                ensure_categories_table($pdo);
+                rename_category($pdo, $currentName, $newName);
+                $categorySuccess = 'Category "' . htmlspecialchars($currentName) . '" renamed to "' . htmlspecialchars($newName) . '".';
+            } catch (Throwable $e) {
+                $errors[] = 'Failed to rename category: ' . $e->getMessage();
+            }
+        }
+    }
+
+    /* ---------- DELETE CATEGORY ---------- */
+    elseif ($action === 'delete_category') {
+        $categoryName = trim($_POST['category_name'] ?? '');
+        $reassignTarget = trim($_POST['reassign_to'] ?? '');
+        $reassignTarget = $reassignTarget !== '' ? $reassignTarget : null;
+
+        if ($categoryName === '') {
+            $errors[] = 'Select a category to delete.';
+        } else {
+            try {
+                $pdo = get_db_connection();
+                ensure_categories_table($pdo);
+                delete_category($pdo, $categoryName, $reassignTarget);
+
+                if ($reassignTarget !== null) {
+                    $categorySuccess = 'Category "' . htmlspecialchars($categoryName) . '" deleted. Products were reassigned to "' . htmlspecialchars($reassignTarget) . '".';
+                } else {
+                    $categorySuccess = 'Category "' . htmlspecialchars($categoryName) . '" deleted.';
+                }
+            } catch (Throwable $e) {
+                $errors[] = 'Failed to delete category: ' . $e->getMessage();
+            }
+        }
+    }
+
     /* ---------- ADD ---------- */
-    if ($action === 'add') {
+    elseif ($action === 'add') {
         $name        = trim($_POST['name'] ?? '');
         $category    = trim($_POST['category'] ?? '');
         $tagline     = trim($_POST['tagline'] ?? '');
@@ -78,6 +155,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($name === '')            $errors[] = 'Product name is required.';
         if ($category === '')        $errors[] = 'Category is required.';
         if ($description === '')     $errors[] = 'A description is required.';
+        if ($tagline !== '' && (function_exists('mb_strlen') ? mb_strlen($tagline) : strlen($tagline)) > 30) {
+            $errors[] = 'Tagline must be 30 characters or fewer.';
+        }
         if ($price === false || $price < 0)  $errors[] = 'Price must be a positive number.';
         if ($stock === false || $stock < 0)  $errors[] = 'Stock must be zero or a positive integer.';
 
@@ -215,6 +295,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($name === '')            $errors[] = 'Product name is required.';
                 if ($category === '')        $errors[] = 'Category is required.';
                 if ($description === '')     $errors[] = 'A description is required.';
+                if ($tagline !== '' && (function_exists('mb_strlen') ? mb_strlen($tagline) : strlen($tagline)) > 30) {
+                    $errors[] = 'Tagline must be 30 characters or fewer.';
+                }
                 if ($price === false || $price < 0)  $errors[] = 'Price must be a positive number.';
                 if ($stock === false || $stock < 0)  $errors[] = 'Stock must be zero or a positive integer.';
 
@@ -348,6 +431,8 @@ if (!in_array($show, ['active', 'all', 'archived'], true)) {
 
 // Grab everything once (admin view needs the full set), then filter in PHP.
 $allProductsRaw = fetch_products_by_category(null, null, false); // false = include archived too
+$categoryOptions = fetch_categories(false);
+$categoryUsage = fetch_category_product_counts(false);
 
 $allProducts = array_values(array_filter($allProductsRaw, function ($p) use ($show) {
     $active = (int)($p['is_active'] ?? 1) === 1;
@@ -375,6 +460,84 @@ require_once __DIR__ . '/includes/header.php';
         </div>
     <?php endif; ?>
 
+    <?php if ($categorySuccess): ?>
+        <div class="notice" style="margin-bottom: 1.5rem; background:#e6ffed; border-color:#34c759;">
+            <?= $categorySuccess ?>
+        </div>
+    <?php endif; ?>
+
+    <datalist id="category-options">
+        <?php foreach ($categoryOptions as $categoryOption): ?>
+            <option value="<?= htmlspecialchars($categoryOption) ?>"></option>
+        <?php endforeach; ?>
+    </datalist>
+
+    <section style="margin-bottom: 2rem;">
+        <h2>Catalog categories</h2>
+        <form method="post" class="form-grid" style="gap: 1rem; max-width: 32rem;">
+            <input type="hidden" name="action" value="add_category">
+            <div style="grid-column: 1 / -1;">
+                <label for="new_category">Add a new category</label>
+                <input type="text" id="new_category" name="new_category" required placeholder="e.g., Tablets" maxlength="22">
+            </div>
+            <div>
+                <button type="submit" class="btn-primary">Add category</button>
+            </div>
+        </form>
+        <?php if ($categoryOptions): ?>
+            <div class="table-responsive" style="margin-top:1.5rem;">
+                <table class="category-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Category</th>
+                            <th scope="col">Products</th>
+                            <th scope="col">Rename</th>
+                            <th scope="col">Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($categoryOptions as $index => $categoryOption): ?>
+                            <?php
+                            $usage = $categoryUsage[$categoryOption] ?? 0;
+                            $requiresReassign = $usage > 0;
+                            ?>
+                            <tr>
+                                <td><?= htmlspecialchars($categoryOption) ?></td>
+                                <td><?= $usage ?></td>
+                                <td>
+                                    <form method="post" class="category-inline-form">
+                                        <input type="hidden" name="action" value="rename_category">
+                                        <input type="hidden" name="current_name" value="<?= htmlspecialchars($categoryOption) ?>">
+                                        <label class="sr-only" for="rename-category-<?= $index ?>">Rename <?= htmlspecialchars($categoryOption) ?></label>
+                                        <input type="text" id="rename-category-<?= $index ?>" name="updated_name" required value="<?= htmlspecialchars($categoryOption) ?>" maxlength="22">
+                                        <button type="submit" class="btn-secondary btn-sm">Rename</button>
+                                    </form>
+                                </td>
+                                <td>
+                                    <form method="post" class="category-inline-form">
+                                        <input type="hidden" name="action" value="delete_category">
+                                        <input type="hidden" name="category_name" value="<?= htmlspecialchars($categoryOption) ?>">
+                                        <?php if ($requiresReassign): ?>
+                                            <label class="sr-only" for="reassign-category-<?= $index ?>">Reassign products from <?= htmlspecialchars($categoryOption) ?></label>
+                                            <input type="text" id="reassign-category-<?= $index ?>" name="reassign_to" list="category-options" placeholder="Select destination" required>
+                                            <p class="category-note">Move products before deleting.</p>
+                                        <?php else: ?>
+                                            <input type="hidden" name="reassign_to" value="">
+                                            <p class="category-note text-muted">No products assigned.</p>
+                                        <?php endif; ?>
+                                        <button type="submit" class="btn-secondary btn-sm">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php else: ?>
+            <p style="margin-top:1rem;" class="text-muted">No categories yet.</p>
+        <?php endif; ?>
+    </section>
+
     <section style="margin-bottom: 2rem;">
         <h2>Add a new product</h2>
         <form method="post" enctype="multipart/form-data" class="form-grid" style="gap: 1rem;">
@@ -383,10 +546,10 @@ require_once __DIR__ . '/includes/header.php';
                 <input type="text" id="name" name="name" required value="<?= htmlspecialchars($addFormData['name']) ?>">
             </div>
             <div><label for="category">Category</label>
-                <input type="text" id="category" name="category" required value="<?= htmlspecialchars($addFormData['category']) ?>">
+                <input type="text" id="category" name="category" list="category-options" required value="<?= htmlspecialchars($addFormData['category']) ?>">
             </div>
             <div><label for="tagline">Tagline</label>
-                <input type="text" id="tagline" name="tagline" value="<?= htmlspecialchars($addFormData['tagline']) ?>">
+                <input type="text" id="tagline" name="tagline" maxlength="30" value="<?= htmlspecialchars($addFormData['tagline']) ?>">
             </div>
             <div><label for="price">Price</label>
                 <input type="number" id="price" name="price" step="0.01" min="0" required value="<?= htmlspecialchars($addFormData['price']) ?>">
@@ -469,10 +632,10 @@ require_once __DIR__ . '/includes/header.php';
                                                 <input type="text" id="edit-name-<?= $productId ?>" name="name" required value="<?= htmlspecialchars($formData['name']) ?>">
                                             </div>
                                             <div><label for="edit-category-<?= $productId ?>">Category</label>
-                                                <input type="text" id="edit-category-<?= $productId ?>" name="category" required value="<?= htmlspecialchars($formData['category']) ?>">
+                                                <input type="text" id="edit-category-<?= $productId ?>" name="category" list="category-options" required value="<?= htmlspecialchars($formData['category']) ?>">
                                             </div>
                                             <div><label for="edit-tagline-<?= $productId ?>">Tagline</label>
-                                                <input type="text" id="edit-tagline-<?= $productId ?>" name="tagline" value="<?= htmlspecialchars($formData['tagline']) ?>">
+                                                <input type="text" id="edit-tagline-<?= $productId ?>" name="tagline" maxlength="30" value="<?= htmlspecialchars($formData['tagline']) ?>">
                                             </div>
                                             <div><label for="edit-price-<?= $productId ?>">Price</label>
                                                 <input type="number" step="0.01" min="0" id="edit-price-<?= $productId ?>" name="price" required value="<?= htmlspecialchars($formData['price']) ?>">
