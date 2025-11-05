@@ -457,6 +457,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+$managedProductId = null;
+if (isset($_GET['manage'])) {
+    $managedProductId = (int)$_GET['manage'];
+    if ($managedProductId <= 0) {
+        $managedProductId = null;
+    }
+}
+
 /* ----------------------------
 |  Fetch (include inactive in admin)
 | ---------------------------- */
@@ -637,8 +645,12 @@ require_once __DIR__ . '/includes/header.php';
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($allProducts as $product): ?>
-                            <?php
+                        <?php
+                        $manageBaseQuery = [];
+                        if ($show !== 'active') {
+                            $manageBaseQuery['show'] = $show;
+                        }
+                        foreach ($allProducts as $product):
                             $productId = (int)$product['id'];
                             $formData = $editFormOverrides[$productId] ?? [
                                 'name' => $product['name'] ?? '',
@@ -652,8 +664,23 @@ require_once __DIR__ . '/includes/header.php';
                                 'image_url_input' => '',
                             ];
                             $isActive = isset($product['is_active']) ? (int)$product['is_active'] : 1;
+                            $isExpanded = isset($editFormOverrides[$productId]) || ($managedProductId === $productId);
+                            $manageRowId = 'manage-panel-' . $productId;
+                            $productAnchorId = 'product-' . $productId;
+                            $openQuery = $manageBaseQuery;
+                            $openQuery['manage'] = $productId;
+                            $openHref = 'admin.php';
+                            if (!empty($openQuery)) {
+                                $openHref .= '?' . http_build_query($openQuery);
+                            }
+                            $openHref .= '#' . $productAnchorId;
+                            $closeHref = 'admin.php';
+                            if (!empty($manageBaseQuery)) {
+                                $closeHref .= '?' . http_build_query($manageBaseQuery);
+                            }
+                            $closeHref .= '#' . $productAnchorId;
                             ?>
-                            <tr<?= $isActive ? '' : ' class="row-archived"' ?>>
+                            <tr id="<?= $productAnchorId ?>"<?= $isActive ? '' : ' class="row-archived"' ?>>
                                 <td>#<?= $productId ?></td>
                                 <td><?= htmlspecialchars($product['name']) ?></td>
                                 <td><?= htmlspecialchars($product['category']) ?></td>
@@ -665,16 +692,17 @@ require_once __DIR__ . '/includes/header.php';
                                 $isExpanded = isset($editFormOverrides[$productId]);
                                 ?>
                                 <td class="actions-cell">
-                                    <button type="button"
-                                        class="manage-product-toggle"
-                                        data-target="<?= $manageRowId ?>"
-                                        aria-controls="<?= $manageRowId ?>"
-                                        aria-expanded="<?= $isExpanded ? 'true' : 'false' ?>"
-                                        data-label-open="Hide editor"
-                                        data-label-closed="Manage product">
-                                        <span class="toggle-label"><?= $isExpanded ? 'Hide editor' : 'Manage product' ?></span>
-                                        <span class="toggle-icon" aria-hidden="true">▾</span>
-                                    </button>
+                                    <?php if ($isExpanded): ?>
+                                        <a class="manage-product-toggle is-active" href="<?= htmlspecialchars($closeHref) ?>"
+                                            aria-controls="<?= $manageRowId ?>" aria-expanded="true">
+                                            Hide editor
+                                        </a>
+                                    <?php else: ?>
+                                        <a class="manage-product-toggle" href="<?= htmlspecialchars($openHref) ?>"
+                                            aria-controls="<?= $manageRowId ?>" aria-expanded="false">
+                                            Manage product
+                                        </a>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                             <tr id="<?= $manageRowId ?>" class="manage-product-row<?= $isExpanded ? ' is-open' : '' ?><?= $isActive ? '' : ' row-archived' ?>">
