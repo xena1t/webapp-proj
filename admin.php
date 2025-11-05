@@ -271,6 +271,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+        /* ---------- RESTORE (un-archive) ---------- */
+    } elseif ($action === 'restore') {
+        $productId = filter_var($_POST['product_id'] ?? '', FILTER_VALIDATE_INT);
+        if (!$productId) {
+            $errors[] = 'A valid product ID is required to restore a product.';
+        } else {
+            try {
+                $pdo = get_db_connection();
+                $stmt = $pdo->prepare('SELECT id, is_active FROM products WHERE id = :id');
+                $stmt->execute(['id' => $productId]);
+                $product = $stmt->fetch();
+
+                if (!$product) {
+                    $errors[] = 'Product not found.';
+                } elseif ((int)$product['is_active'] === 1) {
+                    $errors[] = 'Product is already active.';
+                } else {
+                    $upd = $pdo->prepare('UPDATE products SET is_active = 1 WHERE id = :id');
+                    $upd->execute(['id' => $productId]);
+                    if ($upd->rowCount() === 0) {
+                        $errors[] = 'Unable to restore the product. Please try again.';
+                    } else {
+                        $successMessage = 'Product restored successfully.';
+                    }
+                }
+            } catch (Throwable $e) {
+                $errors[] = 'Failed to restore product: ' . $e->getMessage();
+            }
+        }
+
         /* ---------- EDIT ---------- */
     } elseif ($action === 'edit') {
         $productId = filter_var($_POST['product_id'] ?? '', FILTER_VALIDATE_INT);
@@ -669,13 +699,23 @@ require_once __DIR__ . '/includes/header.php';
                                             <div><button type="submit" class="btn-primary">Save changes</button></div>
                                         </form>
 
-                                        <form method="post" onsubmit="return confirm('Archive this product? It will disappear from the storefront but stay in orders.');" style="margin-top:1rem;">
-                                            <input type="hidden" name="action" value="delete"><!-- same action, soft delete -->
-                                            <input type="hidden" name="product_id" value="<?= $productId ?>">
-                                            <button type="submit" class="btn-secondary" style="background:#c92a2a;border-color:#c92a2a;">
-                                                Archive product
-                                            </button>
-                                        </form>
+                                        <?php if ($isActive): ?>
+                                            <form method="post" onsubmit="return confirm('Archive this product? It will disappear from the storefront but stay in orders.');" style="margin-top:1rem;">
+                                                <input type="hidden" name="action" value="delete"><!-- same action, soft delete -->
+                                                <input type="hidden" name="product_id" value="<?= $productId ?>">
+                                                <button type="submit" class="btn-secondary" style="background:#c92a2a;border-color:#c92a2a;">
+                                                    Archive product
+                                                </button>
+                                            </form>
+                                        <?php else: ?>
+                                            <form method="post" style="margin-top:1rem;">
+                                                <input type="hidden" name="action" value="restore">
+                                                <input type="hidden" name="product_id" value="<?= $productId ?>">
+                                                <button type="submit" class="btn-secondary" style="background:#2b8a3e;border-color:#2b8a3e;">
+                                                    Restore product
+                                                </button>
+                                            </form>
+                                        <?php endif; ?>
                                     </details>
                                 </td>
                             </tr>
