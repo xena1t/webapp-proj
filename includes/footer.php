@@ -44,13 +44,26 @@
                 <input type="email" id="newsletterEmail" name="email"
                     value="<?= htmlspecialchars($authenticatedUser['email'] ?? '') ?>" readonly required>
 
+                <?php
+                $newsletterCategories = [];
+                if (isset($categories) && is_array($categories) && !empty($categories)) {
+                    $newsletterCategories = $categories;
+                } elseif (function_exists('fetch_categories')) {
+                    try {
+                        $newsletterCategories = fetch_categories();
+                    } catch (Throwable $ignored) {
+                        $newsletterCategories = [];
+                    }
+                }
+                ?>
                 <label for="devicePreference">Primary interest</label>
                 <select id="devicePreference" name="preference" required>
                     <option value="">Select a category</option>
-                    <option value="Laptops">Laptops</option>
-                    <option value="Components">Components</option>
-                    <option value="Peripherals">Peripherals</option>
-                    <option value="Smart Home">Smart Home</option>
+                    <?php foreach ($newsletterCategories as $categoryOption): ?>
+                        <option value="<?= htmlspecialchars($categoryOption) ?>">
+                            <?= htmlspecialchars($categoryOption) ?>
+                        </option>
+                    <?php endforeach; ?>
                 </select>
 
                 <fieldset>

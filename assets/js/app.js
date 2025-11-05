@@ -199,6 +199,119 @@ window.addEventListener('resize', () => {
     }
 });
 
+// Admin manage-product toggles
+(function () {
+    const toggleSelector = '.manage-product-toggle';
+    const rowOpenClass = 'is-open';
+    const activeToggleClass = 'is-active';
+
+    const toggles = Array.from(document.querySelectorAll(toggleSelector));
+    if (toggles.length === 0) {
+        return;
+    }
+
+    const pairs = toggles
+        .map((link) => {
+            const controlledId = link.getAttribute('aria-controls');
+            if (!controlledId) {
+                return null;
+            }
+
+            const row = document.getElementById(controlledId);
+            if (!row) {
+                return null;
+            }
+
+            return {
+                link,
+                row,
+                productId: link.dataset.productId || null,
+                anchorId: link.dataset.anchor || null,
+            };
+        })
+        .filter(Boolean);
+
+    if (pairs.length === 0) {
+        return;
+    }
+
+    const openLabelFor = (pair) => pair.link.dataset.openLabel || 'Manage product';
+    const closeLabelFor = (pair) => pair.link.dataset.closeLabel || 'Hide editor';
+
+    const setPairState = (pair, open) => {
+        pair.row.classList.toggle(rowOpenClass, open);
+        pair.row.hidden = !open;
+        pair.link.classList.toggle(activeToggleClass, open);
+        pair.link.setAttribute('aria-expanded', open ? 'true' : 'false');
+        pair.link.textContent = open ? closeLabelFor(pair) : openLabelFor(pair);
+    };
+
+    const updateHistory = (pair, open) => {
+        if (!window.history || typeof window.history.replaceState !== 'function') {
+            return;
+        }
+
+        const url = new URL(window.location.href);
+        if (open && pair.productId) {
+            url.searchParams.set('manage', pair.productId);
+        } else {
+            url.searchParams.delete('manage');
+        }
+        const hash = pair.anchorId ? `#${pair.anchorId}` : '';
+        window.history.replaceState({}, '', `${url.pathname}${url.search}${hash}`);
+    };
+
+    let currentlyOpen = null;
+
+    // Normalize initial state so only aria-expanded="true" panels stay open.
+    pairs.forEach((pair) => {
+        const shouldBeOpen = pair.link.getAttribute('aria-expanded') === 'true';
+        setPairState(pair, shouldBeOpen);
+        if (shouldBeOpen) {
+            currentlyOpen = pair;
+        }
+    });
+
+    const scrollIntoViewIfNeeded = (pair) => {
+        if (!pair.anchorId) {
+            return;
+        }
+
+        const anchorRow = document.getElementById(pair.anchorId);
+        if (!anchorRow) {
+            return;
+        }
+
+        const rect = anchorRow.getBoundingClientRect();
+        const isVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
+        if (!isVisible) {
+            anchorRow.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
+
+    pairs.forEach((pair) => {
+        pair.link.addEventListener('click', (event) => {
+            event.preventDefault();
+
+            const isOpen = pair.row.classList.contains(rowOpenClass);
+            const nextState = !isOpen;
+
+            if (nextState && currentlyOpen && currentlyOpen !== pair) {
+                setPairState(currentlyOpen, false);
+            }
+
+            setPairState(pair, nextState);
+            updateHistory(pair, nextState);
+
+            currentlyOpen = nextState ? pair : null;
+
+            if (nextState) {
+                scrollIntoViewIfNeeded(pair);
+            }
+        });
+    });
+})();
+
 async function copyToClipboard(text, button) {
     if (!text) return;
 
