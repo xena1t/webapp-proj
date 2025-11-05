@@ -706,7 +706,7 @@ require_once __DIR__ . '/includes/header.php';
                                     <?php endif; ?>
                                 </td>
                             </tr>
-                            <tr id="<?= $manageRowId ?>" class="manage-product-row<?= $isExpanded ? ' is-open' : '' ?><?= $isActive ? '' : ' row-archived' ?>">
+                            <tr id="<?= $manageRowId ?>" class="manage-product-row<?= $isExpanded ? ' is-open' : '' ?><?= $isActive ? '' : ' row-archived' ?>"<?= $isExpanded ? '' : ' hidden' ?>>
                                 <td colspan="7">
                                     <div class="manage-product-panel">
                                         <form method="post" enctype="multipart/form-data" class="form-grid manage-product-form">

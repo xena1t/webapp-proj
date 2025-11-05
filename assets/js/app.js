@@ -242,6 +242,7 @@ window.addEventListener('resize', () => {
 
     const setPairState = (pair, open) => {
         pair.row.classList.toggle(rowOpenClass, open);
+        pair.row.hidden = !open;
         pair.link.classList.toggle(activeToggleClass, open);
         pair.link.setAttribute('aria-expanded', open ? 'true' : 'false');
         pair.link.textContent = open ? closeLabelFor(pair) : openLabelFor(pair);
