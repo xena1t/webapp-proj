@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/functions.php'; // must call session_start() and define get_db_connection()
-require_once __DIR__ . '/includes/header.php';
+start_session();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: register.php');
