@@ -654,6 +654,142 @@ a:focus {
     font-weight: 600;
 }
 
+.table-responsive td.actions-cell {
+    white-space: nowrap;
+}
+
+.manage-product-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.55rem 1.15rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    background: linear-gradient(135deg, rgba(15, 139, 255, 0.92), rgba(45, 197, 253, 0.92));
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    box-shadow: 0 12px 24px -16px rgba(15, 23, 42, 0.65);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    text-decoration: none;
+}
+
+.manage-product-toggle:hover,
+.manage-product-toggle:focus {
+    background: linear-gradient(135deg, rgba(15, 139, 255, 1), rgba(45, 197, 253, 1));
+    transform: translateY(-1px);
+    box-shadow: 0 16px 32px -18px rgba(15, 23, 42, 0.7);
+    outline: none;
+}
+
+.manage-product-toggle:focus-visible {
+    box-shadow: 0 0 0 3px rgba(15, 139, 255, 0.35), 0 16px 32px -18px rgba(15, 23, 42, 0.7);
+}
+
+.manage-product-toggle.is-active {
+    background: linear-gradient(135deg, rgba(15, 139, 255, 0.35), rgba(45, 197, 253, 0.6));
+    color: var(--text-heading);
+    box-shadow: none;
+}
+
+.manage-product-row {
+    background: rgba(15, 23, 42, 0.02);
+    display: none;
+}
+
+.manage-product-row > td {
+    padding: 1.5rem 1.25rem;
+}
+
+.manage-product-row.is-open {
+    display: table-row;
+}
+
+.manage-product-panel {
+    margin: 0 auto;
+    padding: clamp(1.25rem, 2.5vw, 1.75rem);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    background: #ffffff;
+    box-shadow: 0 18px 40px -24px rgba(15, 23, 42, 0.55);
+    width: min(920px, 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.manage-product-form {
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.manage-product-form > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.manage-product-form textarea,
+.manage-product-form input,
+.manage-product-form select {
+    width: 100%;
+}
+
+.manage-product-form .checkbox {
+    align-items: flex-start;
+}
+
+.manage-product-field-full {
+    grid-column: 1 / -1;
+}
+
+.current-image {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.manage-product-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.manage-product-action {
+    margin: 0;
+}
+
+.manage-product-action button {
+    width: fit-content;
+}
+
+@media (max-width: 640px) {
+    .manage-product-toggle {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .manage-product-panel {
+        width: 100%;
+        padding: 1rem;
+    }
+
+    .manage-product-form {
+        grid-template-columns: 1fr;
+    }
+
+    .manage-product-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .manage-product-action button {
+        width: 100%;
+    }
+}
+
 .product-detail {
     display: grid;
     grid-template-columns: minmax(280px, 1fr) minmax(320px, 1fr);
@@ -1899,48 +2035,6 @@ tr.row-archived:hover {
 }
 
 /* =========================
-   ADMIN: Details / Summary
-   ========================= */
-
-details summary {
-  list-style: none;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: .5rem;
-  padding: .5rem 1rem;
-  border-radius: 999px;
-  border: 1px solid var(--border-color);
-  color: var(--text-secondary);
-  transition: border-color .2s ease, color .2s ease, box-shadow .2s ease;
-}
-
-details summary::-webkit-details-marker { display: none; }
-
-details summary::after {
-  content: "▸";
-  font-size: .9rem;
-  transform: translateY(1px);
-  opacity: .8;
-  transition: transform .2s ease, opacity .2s ease;
-}
-
-details[open] summary {
-  color: var(--text-primary);
-  border-color: rgba(15, 139, 255, 0.28);
-  box-shadow: 0 10px 24px rgba(15, 139, 255, 0.12);
-}
-details[open] summary::after {
-  transform: rotate(90deg);
-  opacity: 1;
-}
-
-/* put some space between the edit form and the delete button */
-details form + form {
-  margin-top: .75rem !important;
-}
-
-/* =========================
    TABLE POLISH
    ========================= */
 
@@ -1950,7 +2044,7 @@ details form + form {
 
 /* nicer alignment for the actions cell */
 .cart-table td:last-child,
-.table-responsive td:last-child {
+.table-responsive td.actions-cell {
   white-space: nowrap;
 }
 
