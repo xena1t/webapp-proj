@@ -664,7 +664,8 @@ require_once __DIR__ . '/includes/header.php';
                                 'image_url_input' => '',
                             ];
                             $isActive = isset($product['is_active']) ? (int)$product['is_active'] : 1;
-                            $isExpanded = isset($editFormOverrides[$productId]) || ($managedProductId === $productId);
+                            $hasOverride = array_key_exists($productId, $editFormOverrides);
+                            $isExpanded = $hasOverride || ($managedProductId === $productId);
                             $manageRowId = 'manage-panel-' . $productId;
                             $productAnchorId = 'product-' . $productId;
                             $openQuery = $manageBaseQuery;
@@ -687,10 +688,6 @@ require_once __DIR__ . '/includes/header.php';
                                 <td><?= format_price((float)$product['price']) ?></td>
                                 <td><?= (int)$product['stock'] ?></td>
                                 <td><?= $isActive ? 'Active' : 'Archived' ?></td>
-                                <?php
-                                $manageRowId = 'manage-panel-' . $productId;
-                                $isExpanded = isset($editFormOverrides[$productId]);
-                                ?>
                                 <td class="actions-cell">
                                     <?php if ($isExpanded): ?>
                                         <a class="manage-product-toggle is-active" href="<?= htmlspecialchars($closeHref) ?>"
