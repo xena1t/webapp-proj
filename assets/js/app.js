@@ -1,3 +1,5 @@
+document.documentElement.classList.add('js-enabled');
+
 const modal = document.getElementById('newsletterModal');
 const newsletterForm = document.getElementById('newsletterForm');
 const feedback = newsletterForm ? newsletterForm.querySelector('.form-feedback') : null;
@@ -198,6 +200,72 @@ window.addEventListener('resize', () => {
         closeSidebar();
     }
 });
+
+const manageProductToggles = Array.from(document.querySelectorAll('.manage-product-toggle'));
+
+if (manageProductToggles.length > 0) {
+    const manageControls = manageProductToggles
+        .map((toggle) => {
+            const targetId = toggle.dataset.target;
+            if (!targetId) {
+                return null;
+            }
+
+            const row = document.getElementById(targetId);
+            if (!row) {
+                return null;
+            }
+
+            return {
+                toggle,
+                row,
+                label: toggle.querySelector('.toggle-label'),
+                openLabel: toggle.dataset.labelOpen || 'Hide editor',
+                closedLabel: toggle.dataset.labelClosed || 'Manage product',
+            };
+        })
+        .filter(Boolean);
+
+    if (manageControls.length > 0) {
+        const setManageState = (control, expanded) => {
+            control.toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+            control.row.classList.toggle('is-open', expanded);
+
+            if (control.label) {
+                control.label.textContent = expanded ? control.openLabel : control.closedLabel;
+            }
+        };
+
+        manageControls.forEach((control) => {
+            const rowIsOpen = control.row.classList.contains('is-open');
+            const ariaExpanded = control.toggle.getAttribute('aria-expanded') === 'true';
+            setManageState(control, rowIsOpen || ariaExpanded);
+        });
+
+        manageControls.forEach((control) => {
+            control.toggle.addEventListener('click', () => {
+                const expanded = control.toggle.getAttribute('aria-expanded') === 'true';
+                const next = !expanded;
+
+                manageControls.forEach((other) => {
+                    if (other !== control) {
+                        setManageState(other, false);
+                    }
+                });
+
+                setManageState(control, next);
+
+                if (next) {
+                    try {
+                        control.row.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+                    } catch (error) {
+                        control.row.scrollIntoView();
+                    }
+                }
+            });
+        });
+    }
+}
 
 async function copyToClipboard(text, button) {
     if (!text) return;
