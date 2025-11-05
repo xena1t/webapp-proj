@@ -1,3 +1,5 @@
+document.documentElement.classList.add('js-enabled');
+
 const modal = document.getElementById('newsletterModal');
 const newsletterForm = document.getElementById('newsletterForm');
 const feedback = newsletterForm ? newsletterForm.querySelector('.form-feedback') : null;
