@@ -229,6 +229,8 @@ window.addEventListener('resize', () => {
                 row,
                 productId: link.dataset.productId || null,
                 anchorId: link.dataset.anchor || null,
+                openHref: link.dataset.openHref || link.getAttribute('href') || null,
+                closeHref: link.dataset.closeHref || null,
             };
         })
         .filter(Boolean);
@@ -246,21 +248,30 @@ window.addEventListener('resize', () => {
         pair.link.classList.toggle(activeToggleClass, open);
         pair.link.setAttribute('aria-expanded', open ? 'true' : 'false');
         pair.link.textContent = open ? closeLabelFor(pair) : openLabelFor(pair);
+        if (open && pair.closeHref) {
+            pair.link.setAttribute('href', pair.closeHref);
+        } else if (!open && pair.openHref) {
+            pair.link.setAttribute('href', pair.openHref);
+        }
     };
 
     const updateHistory = (pair, open) => {
-        if (!window.history || typeof window.history.replaceState !== 'function') {
+        if (!window.history || typeof window.history.replaceState !== 'function' || typeof URL !== 'function') {
             return;
         }
 
-        const url = new URL(window.location.href);
-        if (open && pair.productId) {
-            url.searchParams.set('manage', pair.productId);
-        } else {
-            url.searchParams.delete('manage');
+        try {
+            const url = new URL(window.location.href);
+            if (open && pair.productId) {
+                url.searchParams.set('manage', pair.productId);
+            } else {
+                url.searchParams.delete('manage');
+            }
+            const hash = pair.anchorId ? `#${pair.anchorId}` : '';
+            window.history.replaceState({}, '', `${url.pathname}${url.search}${hash}`);
+        } catch (error) {
+            // If we cannot manipulate the URL, fall back to the default link behaviour.
         }
-        const hash = pair.anchorId ? `#${pair.anchorId}` : '';
-        window.history.replaceState({}, '', `${url.pathname}${url.search}${hash}`);
     };
 
     let currentlyOpen = null;
@@ -293,22 +304,41 @@ window.addEventListener('resize', () => {
 
     pairs.forEach((pair) => {
         pair.link.addEventListener('click', (event) => {
-            event.preventDefault();
-
-            const isOpen = pair.row.classList.contains(rowOpenClass);
-            const nextState = !isOpen;
-
-            if (nextState && currentlyOpen && currentlyOpen !== pair) {
-                setPairState(currentlyOpen, false);
+            if (event.defaultPrevented) {
+                return;
             }
 
-            setPairState(pair, nextState);
-            updateHistory(pair, nextState);
+            // Allow keyboard modifiers to trigger the default navigation (new tab, etc.).
+            if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                return;
+            }
 
-            currentlyOpen = nextState ? pair : null;
+            let toggled = false;
 
-            if (nextState) {
-                scrollIntoViewIfNeeded(pair);
+            try {
+                const isOpen = pair.row.classList.contains(rowOpenClass);
+                const nextState = !isOpen;
+
+                if (nextState && currentlyOpen && currentlyOpen !== pair) {
+                    setPairState(currentlyOpen, false);
+                }
+
+                setPairState(pair, nextState);
+                updateHistory(pair, nextState);
+
+                currentlyOpen = nextState ? pair : null;
+
+                if (nextState) {
+                    scrollIntoViewIfNeeded(pair);
+                }
+
+                toggled = true;
+            } catch (error) {
+                toggled = false;
+            }
+
+            if (toggled) {
+                event.preventDefault();
             }
         });
     });

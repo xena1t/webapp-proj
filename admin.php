@@ -693,14 +693,18 @@ require_once __DIR__ . '/includes/header.php';
                                         <a class="manage-product-toggle is-active" href="<?= htmlspecialchars($closeHref) ?>"
                                             aria-controls="<?= $manageRowId ?>" aria-expanded="true"
                                             data-open-label="Manage product" data-close-label="Hide editor"
-                                            data-product-id="<?= $productId ?>" data-anchor="<?= $productAnchorId ?>">
+                                            data-product-id="<?= $productId ?>" data-anchor="<?= $productAnchorId ?>"
+                                            data-open-href="<?= htmlspecialchars($openHref) ?>"
+                                            data-close-href="<?= htmlspecialchars($closeHref) ?>">
                                             Hide editor
                                         </a>
                                     <?php else: ?>
                                         <a class="manage-product-toggle" href="<?= htmlspecialchars($openHref) ?>"
                                             aria-controls="<?= $manageRowId ?>" aria-expanded="false"
                                             data-open-label="Manage product" data-close-label="Hide editor"
-                                            data-product-id="<?= $productId ?>" data-anchor="<?= $productAnchorId ?>">
+                                            data-product-id="<?= $productId ?>" data-anchor="<?= $productAnchorId ?>"
+                                            data-open-href="<?= htmlspecialchars($openHref) ?>"
+                                            data-close-href="<?= htmlspecialchars($closeHref) ?>">
                                             Manage product
                                         </a>
                                     <?php endif; ?>
