@@ -271,6 +271,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+        /* ---------- RESTORE (un-archive) ---------- */
+    } elseif ($action === 'restore') {
+        $productId = filter_var($_POST['product_id'] ?? '', FILTER_VALIDATE_INT);
+        if (!$productId) {
+            $errors[] = 'A valid product ID is required to restore a product.';
+        } else {
+            try {
+                $pdo = get_db_connection();
+                $stmt = $pdo->prepare('SELECT id, is_active FROM products WHERE id = :id');
+                $stmt->execute(['id' => $productId]);
+                $product = $stmt->fetch();
+
+                if (!$product) {
+                    $errors[] = 'Product not found.';
+                } elseif ((int)$product['is_active'] === 1) {
+                    $errors[] = 'Product is already active.';
+                } else {
+                    $upd = $pdo->prepare('UPDATE products SET is_active = 1 WHERE id = :id');
+                    $upd->execute(['id' => $productId]);
+                    if ($upd->rowCount() === 0) {
+                        $errors[] = 'Unable to restore the product. Please try again.';
+                    } else {
+                        $successMessage = 'Product restored successfully.';
+                    }
+                }
+            } catch (Throwable $e) {
+                $errors[] = 'Failed to restore product: ' . $e->getMessage();
+            }
+        }
+
         /* ---------- EDIT ---------- */
     } elseif ($action === 'edit') {
         $productId = filter_var($_POST['product_id'] ?? '', FILTER_VALIDATE_INT);
@@ -623,60 +653,99 @@ require_once __DIR__ . '/includes/header.php';
                             ];
                             $isActive = isset($product['is_active']) ? (int)$product['is_active'] : 1;
                             ?>
-                            <tr>
+                            <tr<?= $isActive ? '' : ' class="row-archived"' ?>>
                                 <td>#<?= $productId ?></td>
                                 <td><?= htmlspecialchars($product['name']) ?></td>
                                 <td><?= htmlspecialchars($product['category']) ?></td>
                                 <td><?= format_price((float)$product['price']) ?></td>
                                 <td><?= (int)$product['stock'] ?></td>
                                 <td><?= $isActive ? 'Active' : 'Archived' ?></td>
-                                <td>
-                                    <details <?= isset($editFormOverrides[$productId]) ? 'open' : '' ?>>
-                                        <summary>Manage product</summary>
-                                        <form method="post" enctype="multipart/form-data" class="form-grid" style="margin-top:1rem;gap:.75rem;">
+                                <?php
+                                $manageRowId = 'manage-panel-' . $productId;
+                                $isExpanded = isset($editFormOverrides[$productId]);
+                                ?>
+                                <td class="actions-cell">
+                                    <button type="button"
+                                        class="manage-product-toggle"
+                                        data-target="<?= $manageRowId ?>"
+                                        aria-controls="<?= $manageRowId ?>"
+                                        aria-expanded="<?= $isExpanded ? 'true' : 'false' ?>"
+                                        data-label-open="Hide editor"
+                                        data-label-closed="Manage product">
+                                        <span class="toggle-label"><?= $isExpanded ? 'Hide editor' : 'Manage product' ?></span>
+                                        <span class="toggle-icon" aria-hidden="true">▾</span>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr id="<?= $manageRowId ?>" class="manage-product-row<?= $isExpanded ? ' is-open' : '' ?><?= $isActive ? '' : ' row-archived' ?>">
+                                <td colspan="7">
+                                    <div class="manage-product-panel">
+                                        <form method="post" enctype="multipart/form-data" class="form-grid manage-product-form">
                                             <input type="hidden" name="action" value="edit">
                                             <input type="hidden" name="product_id" value="<?= $productId ?>">
-                                            <div><label for="edit-name-<?= $productId ?>">Product name</label>
-                                                <input type="text" id="edit-name-<?= $productId ?>" name="name" required maxlength="22"
-                                                    value="<?= htmlspecialchars($formData['name']) ?>">
+                                            <div>
+                                                <label for="edit-name-<?= $productId ?>">Product name</label>
+                                                <input type="text" id="edit-name-<?= $productId ?>" name="name" required maxlength="22" value="<?= htmlspecialchars($formData['name']) ?>">
                                             </div>
-                                            <div><label for="edit-category-<?= $productId ?>">Category</label>
+                                            <div>
+                                                <label for="edit-category-<?= $productId ?>">Category</label>
                                                 <input type="text" id="edit-category-<?= $productId ?>" name="category" list="category-options" required value="<?= htmlspecialchars($formData['category']) ?>">
                                             </div>
-                                            <div><label for="edit-tagline-<?= $productId ?>">Tagline</label>
+                                            <div>
+                                                <label for="edit-tagline-<?= $productId ?>">Tagline</label>
                                                 <input type="text" id="edit-tagline-<?= $productId ?>" name="tagline" maxlength="30" value="<?= htmlspecialchars($formData['tagline']) ?>">
                                             </div>
-                                            <div><label for="edit-price-<?= $productId ?>">Price</label>
+                                            <div>
+                                                <label for="edit-price-<?= $productId ?>">Price</label>
                                                 <input type="number" step="0.01" min="0" id="edit-price-<?= $productId ?>" name="price" required value="<?= htmlspecialchars($formData['price']) ?>">
                                             </div>
-                                            <div><label for="edit-stock-<?= $productId ?>">Stock</label>
+                                            <div>
+                                                <label for="edit-stock-<?= $productId ?>">Stock</label>
                                                 <input type="number" min="0" id="edit-stock-<?= $productId ?>" name="stock" required value="<?= htmlspecialchars($formData['stock']) ?>">
                                             </div>
-                                            <div style="grid-column:1 / -1;"><label for="edit-description-<?= $productId ?>">Description</label>
+                                            <div class="manage-product-field-full">
+                                                <label for="edit-description-<?= $productId ?>">Description</label>
                                                 <textarea id="edit-description-<?= $productId ?>" name="description" rows="4" required><?= htmlspecialchars($formData['description']) ?></textarea>
                                             </div>
-                                            <div><label for="edit-image-<?= $productId ?>">Upload new image</label>
+                                            <div>
+                                                <label for="edit-image-<?= $productId ?>">Upload new image</label>
                                                 <input type="file" id="edit-image-<?= $productId ?>" name="image" accept="image/*">
                                             </div>
-                                            <div><label for="edit-image-url-<?= $productId ?>">Or provide external image URL</label>
+                                            <div>
+                                                <label for="edit-image-url-<?= $productId ?>">Or provide external image URL</label>
                                                 <input type="url" id="edit-image-url-<?= $productId ?>" name="image_url" placeholder="https://example.com/image.jpg" value="<?= htmlspecialchars($formData['image_url_input']) ?>">
-                                                <small style="display:block;color:#555;">Current image: <?= htmlspecialchars($product['image_url'] ?? 'None') ?></small>
+                                                <small class="current-image">Current image: <?= htmlspecialchars($product['image_url'] ?? 'None') ?></small>
                                             </div>
-                                            <div style="grid-column:1 / -1;"><label for="edit-spec-json-<?= $productId ?>">Specifications (JSON)</label>
+                                            <div class="manage-product-field-full">
+                                                <label for="edit-spec-json-<?= $productId ?>">Specifications (JSON)</label>
                                                 <textarea id="edit-spec-json-<?= $productId ?>" name="spec_json" rows="3" placeholder='{"Processor":"Intel", "RAM":"16GB"}'><?= htmlspecialchars($formData['spec_json']) ?></textarea>
                                             </div>
                                             <div class="checkbox"><label><input type="checkbox" name="featured" value="1" <?= ((int)$formData['featured']) === 1 ? 'checked' : '' ?>> Featured product</label></div>
-                                            <div><button type="submit" class="btn-primary">Save changes</button></div>
+                                            <div>
+                                                <button type="submit" class="btn-primary">Save changes</button>
+                                            </div>
                                         </form>
 
-                                        <form method="post" onsubmit="return confirm('Archive this product? It will disappear from the storefront but stay in orders.');" style="margin-top:1rem;">
-                                            <input type="hidden" name="action" value="delete"><!-- same action, soft delete -->
-                                            <input type="hidden" name="product_id" value="<?= $productId ?>">
-                                            <button type="submit" class="btn-secondary" style="background:#c92a2a;border-color:#c92a2a;">
-                                                Archive product
-                                            </button>
-                                        </form>
-                                    </details>
+                                        <div class="manage-product-actions">
+                                            <?php if ($isActive): ?>
+                                                <form method="post" class="manage-product-action" onsubmit="return confirm('Archive this product? It will disappear from the storefront but stay in orders.');">
+                                                    <input type="hidden" name="action" value="delete"><!-- same action, soft delete -->
+                                                    <input type="hidden" name="product_id" value="<?= $productId ?>">
+                                                    <button type="submit" class="btn-secondary" style="background:#c92a2a;border-color:#c92a2a;">
+                                                        Archive product
+                                                    </button>
+                                                </form>
+                                            <?php else: ?>
+                                                <form method="post" class="manage-product-action">
+                                                    <input type="hidden" name="action" value="restore">
+                                                    <input type="hidden" name="product_id" value="<?= $productId ?>">
+                                                    <button type="submit" class="btn-secondary" style="background:#2b8a3e;border-color:#2b8a3e;">
+                                                        Restore product
+                                                    </button>
+                                                </form>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
