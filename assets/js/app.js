@@ -244,15 +244,29 @@ window.addEventListener('resize', () => {
 
     const setPairState = (pair, open) => {
         pair.row.classList.toggle(rowOpenClass, open);
-        pair.row.hidden = !open;
+        if (open) {
+            pair.row.removeAttribute('hidden');
+            pair.row.style.display = 'table-row';
+        } else {
+            pair.row.setAttribute('hidden', '');
+            pair.row.style.display = 'none';
+        }
+
         pair.link.classList.toggle(activeToggleClass, open);
         pair.link.setAttribute('aria-expanded', open ? 'true' : 'false');
         pair.link.textContent = open ? closeLabelFor(pair) : openLabelFor(pair);
+
         if (open && pair.closeHref) {
             pair.link.setAttribute('href', pair.closeHref);
         } else if (!open && pair.openHref) {
             pair.link.setAttribute('href', pair.openHref);
         }
+
+        const isRowVisible = open
+            ? pair.row.classList.contains(rowOpenClass) && pair.row.style.display === 'table-row'
+            : pair.row.style.display === 'none';
+
+        return isRowVisible;
     };
 
     const updateHistory = (pair, open) => {
@@ -279,8 +293,8 @@ window.addEventListener('resize', () => {
     // Normalize initial state so only aria-expanded="true" panels stay open.
     pairs.forEach((pair) => {
         const shouldBeOpen = pair.link.getAttribute('aria-expanded') === 'true';
-        setPairState(pair, shouldBeOpen);
-        if (shouldBeOpen) {
+        const initialized = setPairState(pair, shouldBeOpen);
+        if (initialized && shouldBeOpen) {
             currentlyOpen = pair;
         }
     });
@@ -323,16 +337,19 @@ window.addEventListener('resize', () => {
                     setPairState(currentlyOpen, false);
                 }
 
-                setPairState(pair, nextState);
-                updateHistory(pair, nextState);
+                const updated = setPairState(pair, nextState);
+                if (updated) {
+                    updateHistory(pair, nextState);
+                    currentlyOpen = nextState ? pair : null;
 
-                currentlyOpen = nextState ? pair : null;
+                    if (nextState) {
+                        scrollIntoViewIfNeeded(pair);
+                    }
 
-                if (nextState) {
-                    scrollIntoViewIfNeeded(pair);
+                    toggled = true;
+                } else if (!updated && nextState && pair.openHref) {
+                    pair.link.setAttribute('href', pair.openHref);
                 }
-
-                toggled = true;
             } catch (error) {
                 toggled = false;
             }
