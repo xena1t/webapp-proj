@@ -199,6 +199,166 @@ window.addEventListener('resize', () => {
     }
 });
 
+// Admin manage-product toggles
+(function () {
+    const toggleSelector = '.manage-product-toggle';
+    const rowOpenClass = 'is-open';
+    const activeToggleClass = 'is-active';
+
+    const toggles = Array.from(document.querySelectorAll(toggleSelector));
+    if (toggles.length === 0) {
+        return;
+    }
+
+    const pairs = toggles
+        .map((link) => {
+            const controlledId = link.getAttribute('aria-controls');
+            if (!controlledId) {
+                return null;
+            }
+
+            const row = document.getElementById(controlledId);
+            if (!row) {
+                return null;
+            }
+
+            return {
+                link,
+                row,
+                productId: link.dataset.productId || null,
+                anchorId: link.dataset.anchor || null,
+                openHref: link.dataset.openHref || link.getAttribute('href') || null,
+                closeHref: link.dataset.closeHref || null,
+            };
+        })
+        .filter(Boolean);
+
+    if (pairs.length === 0) {
+        return;
+    }
+
+    const openLabelFor = (pair) => pair.link.dataset.openLabel || 'Manage product';
+    const closeLabelFor = (pair) => pair.link.dataset.closeLabel || 'Hide editor';
+
+    const setPairState = (pair, open) => {
+        pair.row.classList.toggle(rowOpenClass, open);
+        if (open) {
+            pair.row.removeAttribute('hidden');
+            pair.row.style.display = 'table-row';
+        } else {
+            pair.row.setAttribute('hidden', '');
+            pair.row.style.display = 'none';
+        }
+
+        pair.link.classList.toggle(activeToggleClass, open);
+        pair.link.setAttribute('aria-expanded', open ? 'true' : 'false');
+        pair.link.textContent = open ? closeLabelFor(pair) : openLabelFor(pair);
+
+        if (open && pair.closeHref) {
+            pair.link.setAttribute('href', pair.closeHref);
+        } else if (!open && pair.openHref) {
+            pair.link.setAttribute('href', pair.openHref);
+        }
+
+        const isRowVisible = open
+            ? pair.row.classList.contains(rowOpenClass) && pair.row.style.display === 'table-row'
+            : pair.row.style.display === 'none';
+
+        return isRowVisible;
+    };
+
+    const updateHistory = (pair, open) => {
+        if (!window.history || typeof window.history.replaceState !== 'function' || typeof URL !== 'function') {
+            return;
+        }
+
+        try {
+            const url = new URL(window.location.href);
+            if (open && pair.productId) {
+                url.searchParams.set('manage', pair.productId);
+            } else {
+                url.searchParams.delete('manage');
+            }
+            const hash = pair.anchorId ? `#${pair.anchorId}` : '';
+            window.history.replaceState({}, '', `${url.pathname}${url.search}${hash}`);
+        } catch (error) {
+            // If we cannot manipulate the URL, fall back to the default link behaviour.
+        }
+    };
+
+    let currentlyOpen = null;
+
+    // Normalize initial state so only aria-expanded="true" panels stay open.
+    pairs.forEach((pair) => {
+        const shouldBeOpen = pair.link.getAttribute('aria-expanded') === 'true';
+        const initialized = setPairState(pair, shouldBeOpen);
+        if (initialized && shouldBeOpen) {
+            currentlyOpen = pair;
+        }
+    });
+
+    const scrollIntoViewIfNeeded = (pair) => {
+        if (!pair.anchorId) {
+            return;
+        }
+
+        const anchorRow = document.getElementById(pair.anchorId);
+        if (!anchorRow) {
+            return;
+        }
+
+        const rect = anchorRow.getBoundingClientRect();
+        const isVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
+        if (!isVisible) {
+            anchorRow.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
+
+    pairs.forEach((pair) => {
+        pair.link.addEventListener('click', (event) => {
+            if (event.defaultPrevented) {
+                return;
+            }
+
+            // Allow keyboard modifiers to trigger the default navigation (new tab, etc.).
+            if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                return;
+            }
+
+            let toggled = false;
+
+            try {
+                const isOpen = pair.row.classList.contains(rowOpenClass);
+                const nextState = !isOpen;
+
+                if (nextState && currentlyOpen && currentlyOpen !== pair) {
+                    setPairState(currentlyOpen, false);
+                }
+
+                const updated = setPairState(pair, nextState);
+                if (updated) {
+                    updateHistory(pair, nextState);
+                    currentlyOpen = nextState ? pair : null;
+
+                    if (nextState) {
+                        scrollIntoViewIfNeeded(pair);
+                    }
+
+                    toggled = true;
+                } else if (!updated && nextState && pair.openHref) {
+                    pair.link.setAttribute('href', pair.openHref);
+                }
+            } catch (error) {
+                toggled = false;
+            }
+
+            if (toggled) {
+                event.preventDefault();
+            }
+        });
+    });
+})();
+
 async function copyToClipboard(text, button) {
     if (!text) return;
 
