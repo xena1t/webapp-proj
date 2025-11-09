@@ -574,8 +574,9 @@ function add_to_wishlist(int $productId): void
 
     $pdo = get_db_connection();
     $stmt = $pdo->prepare(
-        'INSERT INTO wishlist_items (user_id, product_id) VALUES (:user_id, :product_id)
-         ON DUPLICATE KEY UPDATE added_at = VALUES(added_at)'
+        'INSERT INTO wishlist_items (user_id, product_id, added_at)
+         VALUES (:user_id, :product_id, NOW())
+         ON DUPLICATE KEY UPDATE added_at = NOW()'
     );
     $stmt->execute([
         'user_id' => $userId,
