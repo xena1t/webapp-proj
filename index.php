@@ -32,8 +32,9 @@ $categories = fetch_categories();
                     <p><?= htmlspecialchars($product['tagline'] ?? $product['description']) ?></p>
                     <div class="product-price"><?= format_price((float) $product['price']) ?></div>
                     <a class="btn-secondary" href="product.php?id=<?= $product['id'] ?>">View details</a>
+                    <?php $featuredImage = asset_url((string) $product['image_url']); ?>
                     <div class="product-image">
-                        <img src="<?= htmlspecialchars($product['image_url']) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
+                        <img src="<?= htmlspecialchars($featuredImage) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
                     </div>
                 </div>
             </article>
