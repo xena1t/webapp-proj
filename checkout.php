@@ -340,30 +340,37 @@ require_once __DIR__ . '/includes/header.php';
                 <div>
                     <label for="name">Full name</label>
                     <input type="text" id="name" name="name" value="<?= htmlspecialchars($formData['name']) ?>" required minlength="2" pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-\s]{2,}$" title="Use at least two letters. Hyphens, apostrophes, and spaces are allowed.">
+                    <p class="text-muted" style="margin-top: 0.35rem;">Enter the recipient’s full name using at least two letters.</p>
                 </div>
                 <div>
                     <label for="email">Email address</label>
                     <input type="email" id="email" name="email" value="<?= htmlspecialchars($checkoutEmail) ?>" required readonly>
+                    <p class="text-muted" style="margin-top: 0.35rem;">We’ll send order updates to this verified email.</p>
                 </div>
                 <div>
                     <label for="address_line1">Street address</label>
                     <input type="text" id="address_line1" name="address_line1" value="<?= htmlspecialchars($formData['address_line1']) ?>" required minlength="5" title="Provide the street address for delivery.">
+                    <p class="text-muted" style="margin-top: 0.35rem;">Include house number and street so couriers can find you.</p>
                 </div>
                 <div>
                     <label for="address_line2">Apartment, suite, etc. (optional)</label>
                     <input type="text" id="address_line2" name="address_line2" value="<?= htmlspecialchars($formData['address_line2']) ?>" minlength="3" title="Add apartment or suite information if needed.">
+                    <p class="text-muted" style="margin-top: 0.35rem;">Add unit or floor details if they help the delivery team.</p>
                 </div>
                 <div>
                     <label for="city">City</label>
                     <input type="text" id="city" name="city" value="<?= htmlspecialchars($formData['city']) ?>" required minlength="2" pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-\s]{2,}$" title="City names should include at least two letters. Hyphens, apostrophes, and spaces are allowed.">
+                    <p class="text-muted" style="margin-top: 0.35rem;">Use at least two letters; hyphens and spaces are okay.</p>
                 </div>
                 <div>
                     <label for="state">State / Province</label>
                     <input type="text" id="state" name="state" value="<?= htmlspecialchars($formData['state']) ?>" required minlength="2" pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'\-\s]{2,}$" title="State or province names should include at least two letters. Hyphens, apostrophes, and spaces are allowed.">
+                    <p class="text-muted" style="margin-top: 0.35rem;">Provide the full state or province name with at least two letters.</p>
                 </div>
                 <div>
                     <label for="postal_code">Postal code</label>
                     <input type="text" id="postal_code" name="postal_code" value="<?= htmlspecialchars($formData['postal_code']) ?>" required pattern="^[A-Za-z0-9\s\-]{3,10}$" title="Postal codes should be 3 to 10 characters using letters, numbers, spaces, or hyphens.">
+                    <p class="text-muted" style="margin-top: 0.35rem;">Enter 3–10 characters. Letters, numbers, spaces, and hyphens are accepted.</p>
                 </div>
                 <div>
                     <label for="payment_method">Payment method</label>
@@ -373,6 +380,7 @@ require_once __DIR__ . '/includes/header.php';
                         <option value="PayNow" <?= ($formData['payment_method'] === 'PayNow') ? 'selected' : '' ?>>PayNow</option>
                         <option value="Bank Transfer" <?= ($formData['payment_method'] === 'Bank Transfer') ? 'selected' : '' ?>>Bank Transfer</option>
                     </select>
+                    <p class="text-muted" style="margin-top: 0.35rem;">Choose the payment option you will use to complete the order.</p>
                 </div>
                 <div>
                     <label for="promo">Discount code</label>
@@ -387,6 +395,9 @@ require_once __DIR__ . '/includes/header.php';
                     <p class="text-muted" style="margin-top: 0.5rem;">Use the one-time code from your welcome newsletter email.</p>
                     <?php if ($appliedDiscount): ?>
                         <p class="text-muted">Applied: <?= htmlspecialchars($appliedDiscount['code']) ?> (<?= number_format((float) $appliedDiscount['percent']) ?>% off)</p>
+                    <?php endif; ?>
+                    <?php if (!$appliedDiscount): ?>
+                        <p class="text-muted" style="margin-top: 0.35rem;">Codes are optional and must match the format from TechMart emails.</p>
                     <?php endif; ?>
                 </div>
                 <button type="submit" class="btn-primary">Place order</button>

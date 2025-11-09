@@ -87,18 +87,22 @@ require_once __DIR__ . '/includes/header.php';
         <div>
             <label for="contactName">Name</label>
             <input type="text" id="contactName" name="name" required value="<?= htmlspecialchars($formValues['name']) ?>">
+            <p class="text-muted" style="margin-top: 0.35rem;">Share your name so we know how to address you.</p>
         </div>
         <div>
             <label for="contactEmail">Email</label>
             <input type="email" id="contactEmail" name="email" required value="<?= htmlspecialchars($formValues['email']) ?>">
+            <p class="text-muted" style="margin-top: 0.35rem;">We will reply to this address, so make sure it’s valid.</p>
         </div>
         <div>
             <label for="contactTopic">Topic</label>
             <input type="text" id="contactTopic" name="topic" required value="<?= htmlspecialchars($formValues['topic']) ?>">
+            <p class="text-muted" style="margin-top: 0.35rem;">Let us know what your message is about.</p>
         </div>
         <div style="grid-column: 1 / -1;">
             <label for="contactMessage">How can we help?</label>
             <textarea id="contactMessage" name="message" rows="6" required><?= htmlspecialchars($formValues['message']) ?></textarea>
+            <p class="text-muted" style="margin-top: 0.35rem;">Provide a brief description so our team can assist quickly.</p>
         </div>
         <button type="submit" class="btn-primary" style="grid-column: 1 / -1;">Send message</button>
     </form>

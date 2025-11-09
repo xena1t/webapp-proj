@@ -120,14 +120,17 @@ require_once __DIR__ . '/includes/header.php';
         <div>
             <label for="orderId">Order number</label>
             <input type="number" id="orderId" name="order_id" required value="<?= $formValues['order_id'] ? htmlspecialchars((string) $formValues['order_id']) : '' ?>">
+            <p class="text-muted" style="margin-top: 0.35rem;">Use the order number from your confirmation email.</p>
         </div>
         <div>
             <label for="reviewEmail">Email used at checkout</label>
             <input type="email" id="reviewEmail" name="email" required value="<?= htmlspecialchars($formValues['email']) ?>">
+            <p class="text-muted" style="margin-top: 0.35rem;">Enter the same email so we can verify the purchase.</p>
         </div>
         <div>
             <label for="reviewName">Name</label>
             <input type="text" id="reviewName" name="name" required value="<?= htmlspecialchars($formValues['name']) ?>">
+            <p class="text-muted" style="margin-top: 0.35rem;">Share the name you want displayed with the review.</p>
         </div>
         <div>
             <label for="reviewRating">Rating</label>
@@ -137,10 +140,12 @@ require_once __DIR__ . '/includes/header.php';
                     <option value="<?= $i ?>" <?= ((string) $formValues['rating'] === (string) $i) ? 'selected' : '' ?>><?= $i ?> star<?= $i > 1 ? 's' : '' ?></option>
                 <?php endfor; ?>
             </select>
+            <p class="text-muted" style="margin-top: 0.35rem;">Choose a whole-number rating between 1 and 5 stars.</p>
         </div>
         <div style="grid-column: 1 / -1;">
             <label for="reviewComments">Share more details (optional)</label>
             <textarea id="reviewComments" name="comments" rows="6" maxlength="2000" placeholder="Tell us about delivery, setup, and anything we could do better."><?= htmlspecialchars($formValues['comments']) ?></textarea>
+            <p class="text-muted" style="margin-top: 0.35rem;">You can add up to 2000 characters of feedback.</p>
         </div>
         <button type="submit" class="btn-primary" style="grid-column: 1 / -1;">Submit review</button>
     </form>

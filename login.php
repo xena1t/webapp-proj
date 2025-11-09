@@ -16,8 +16,10 @@ if (isset($_SESSION['user'])) {
     <form method="post" action="handle_login.php" class="card" style="padding:1.5rem;">
         <label>Email</label>
         <input type="email" name="email" required class="input" placeholder="you@example.com">
+        <p class="text-muted" style="margin-top:0.35rem;">Use the same email address you registered with.</p>
         <label>Password</label>
         <input type="password" name="password" required class="input" placeholder="••••••••">
+        <p class="text-muted" style="margin-top:0.35rem;">Passwords are case-sensitive.</p>
         <br/>
         <button type="submit" class="btn-primary" style="margin-top:1rem;">Login</button>
         <p style="margin-top:1rem;">Don’t have an account?
