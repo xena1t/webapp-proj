@@ -77,11 +77,11 @@ try {
     $monthlyRevenue = $monthlyStmt->fetchAll();
 
     $ordersStmt = $pdo->query(
-        'SELECT o.id, o.customer_name, o.customer_email, o.status, o.total, o.created_at,
+        'SELECT o.id, o.customer_order_number, o.customer_name, o.customer_email, o.status, o.total, o.created_at,
                 COALESCE(SUM(oi.quantity), 0) AS item_count
            FROM orders o
            LEFT JOIN order_items oi ON oi.order_id = o.id
-          GROUP BY o.id, o.customer_name, o.customer_email, o.status, o.total, o.created_at
+          GROUP BY o.id, o.customer_order_number, o.customer_name, o.customer_email, o.status, o.total, o.created_at
           ORDER BY o.created_at DESC
           LIMIT 20'
     );
@@ -236,7 +236,12 @@ require_once __DIR__ . '/includes/header.php';
                         <tbody>
                             <?php foreach ($recentOrders as $order): ?>
                                 <tr>
-                                    <td>#<?= (int) $order['id'] ?></td>
+                                    <?php
+                                    $displayOrderNumber = isset($order['customer_order_number']) && (int) $order['customer_order_number'] > 0
+                                        ? (int) $order['customer_order_number']
+                                        : (int) $order['id'];
+                                    ?>
+                                    <td>#<?= htmlspecialchars((string) $displayOrderNumber) ?> <span class="text-muted">(ID <?= (int) $order['id'] ?>)</span></td>
                                     <td><?= htmlspecialchars($order['customer_name']) ?></td>
                                     <td><?= htmlspecialchars($order['customer_email']) ?></td>
                                     <td><?= htmlspecialchars($order['status']) ?></td>

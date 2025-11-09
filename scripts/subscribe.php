@@ -46,10 +46,20 @@ try {
         $pdo->commit();
 
         if ($discount) {
-            send_newsletter_discount_email($normalizedEmail, $discount['code'], true);
+            $emailSent = send_newsletter_discount_email($normalizedEmail, $discount['code'], true);
+            if (!$emailSent) {
+                http_response_code(500);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'We found your welcome code but could not email it right now. Use ' . $discount['code'] . ' at checkout and try again later for a fresh copy in your inbox.',
+                    'code' => $discount['code'],
+                ]);
+                exit;
+            }
+
             echo json_encode([
                 'success' => true,
-                'message' => 'You are already subscribed! Your welcome code is ' . $discount['code'] . '. Enjoy 10% off your next order.',
+                'message' => 'You are already subscribed! We just resent your welcome code (' . $discount['code'] . ') to your inbox.',
                 'code' => $discount['code'],
             ]);
         } else {
@@ -72,11 +82,20 @@ try {
     $discount = issue_newsletter_discount_code($subscriberId, $normalizedEmail, 10.0, $pdo);
     $pdo->commit();
 
-    send_newsletter_discount_email($normalizedEmail, $discount['code']);
+    $emailSent = send_newsletter_discount_email($normalizedEmail, $discount['code']);
+    if (!$emailSent) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => 'We created your welcome code but could not send the email right now. Your code is ' . $discount['code'] . '. Please try again shortly so we can deliver it to your inbox.',
+            'code' => $discount['code'],
+        ]);
+        exit;
+    }
 
     echo json_encode([
         'success' => true,
-        'message' => 'Welcome aboard! Your 10% code is ' . $discount['code'] . '.',
+        'message' => 'Welcome aboard! Your 10% code is ' . $discount['code'] . '. We emailed it to you as well.',
         'code' => $discount['code'],
     ]);
 } catch (Throwable $exception) {

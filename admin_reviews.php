@@ -54,8 +54,10 @@ try {
     }
     $stmt = $pdo->query(
         'SELECT r.id, r.order_id, r.reviewer_name, r.reviewer_email, r.rating, r.comments, r.created_at,
+                o.customer_order_number,
                 GROUP_CONCAT(DISTINCT p.name ORDER BY p.name SEPARATOR ", ") AS product_names
            FROM order_reviews r
+           INNER JOIN orders o ON o.id = r.order_id
            LEFT JOIN order_items oi ON oi.order_id = r.order_id
            LEFT JOIN products p ON p.id = oi.product_id
        GROUP BY r.id
@@ -119,7 +121,12 @@ require_once __DIR__ . '/includes/header.php';
                             <td>
                                 <strong><?= htmlspecialchars($review['reviewer_name']) ?></strong>
                                 <div class="reviewer-email"><?= htmlspecialchars($review['reviewer_email']) ?></div>
-                                <div class="review-order">Order #<?= (int) $review['order_id'] ?></div>
+                                <?php
+                                $orderNumber = isset($review['customer_order_number']) && (int) $review['customer_order_number'] > 0
+                                    ? (int) $review['customer_order_number']
+                                    : (int) $review['order_id'];
+                                ?>
+                                <div class="review-order">Order #<?= htmlspecialchars((string) $orderNumber) ?></div>
                             </td>
                             <td>
                                 <?php if ($review['product_names']): ?>

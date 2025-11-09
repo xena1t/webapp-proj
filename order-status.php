@@ -11,26 +11,29 @@ $deliveryCountdownText = null;
 $expectedDeliveryLabel = null;
 $courierMeta = null;
 
-$orderId = isset($_GET['order']) ? (int) $_GET['order'] : 0;
+$orderNumber = isset($_GET['order']) ? (int) $_GET['order'] : 0;
 $orderEmail = isset($_GET['email']) ? filter_var($_GET['email'], FILTER_VALIDATE_EMAIL) : null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $orderId = isset($_POST['order']) ? (int) $_POST['order'] : 0;
+    $orderNumber = isset($_POST['order']) ? (int) $_POST['order'] : 0;
     $orderEmail = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
 }
 
-if ($orderId && $orderEmail) {
+if ($orderNumber && $orderEmail) {
     $pdo = get_db_connection();
-    $stmt = $pdo->prepare('SELECT * FROM orders WHERE id = :id AND customer_email = :email');
+    $stmt = $pdo->prepare('SELECT * FROM orders WHERE customer_email = :email AND (customer_order_number = :order_number OR id = :order_number)');
     $stmt->execute([
-        'id' => $orderId,
         'email' => $orderEmail,
+        'order_number' => $orderNumber,
     ]);
     $order = $stmt->fetch();
 
     if ($order) {
+        $order['customer_order_number'] = isset($order['customer_order_number']) && (int) $order['customer_order_number'] > 0
+            ? (int) $order['customer_order_number']
+            : (int) $order['id'];
         $itemsStmt = $pdo->prepare('SELECT oi.quantity, oi.unit_price, p.name FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE oi.order_id = :order_id');
-        $itemsStmt->execute(['order_id' => $orderId]);
+        $itemsStmt->execute(['order_id' => (int) $order['id']]);
         $orderItems = $itemsStmt->fetchAll();
 
         if (!function_exists('format_interval_human')) {
@@ -162,7 +165,7 @@ if ($orderId && $orderEmail) {
     <!-- <form method="post" class="form-grid" style="margin-top: 2rem; max-width: 520px;">
         <div>
             <label for="order">Order number</label>
-            <input type="number" id="order" name="order" required value="<?= $orderId ? htmlspecialchars((string) $orderId) : '' ?>">
+            <input type="number" id="order" name="order" required value="<?= $orderNumber ? htmlspecialchars((string) $orderNumber) : '' ?>">
         </div>
         <div>
             <label for="email">Email address</label>
@@ -180,7 +183,7 @@ if ($orderId && $orderEmail) {
     <?php if ($order): ?>
         <div class="order-status-card" style="margin-top: 3rem;">
             <div class="status-pill">Status: <?= htmlspecialchars($order['status']) ?></div>
-            <h2>Order #<?= htmlspecialchars((string) $order['id']) ?></h2>
+            <h2>Order #<?= htmlspecialchars((string) $order['customer_order_number']) ?></h2>
             <p>Placed on <?= date('F j, Y g:i A', strtotime($order['created_at'])) ?></p>
             <p><strong>Shipping to:</strong><br><?= nl2br(htmlspecialchars($order['shipping_address'])) ?></p>
             <h3>Items</h3>

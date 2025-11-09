@@ -179,12 +179,15 @@ function smtp_send(string $to, string $subject, string $body, array $headers): ?
 function send_order_confirmation(array $order, array $items): void
 {
     $to = $order['customer_email'];
-    $subject = 'Order #' . $order['id'] . ' Confirmation - ' . SITE_NAME;
+    $displayNumber = isset($order['customer_order_number']) && (int) $order['customer_order_number'] > 0
+        ? (int) $order['customer_order_number']
+        : (int) $order['id'];
+    $subject = 'Order #' . $displayNumber . ' Confirmation - ' . SITE_NAME;
 
     $lines = [
         'Hi ' . $order['customer_name'] . ',',
         '',
-        'Thanks for shopping with ' . SITE_NAME . '! We have received your order #' . $order['id'] . '.',
+        'Thanks for shopping with ' . SITE_NAME . '! We have received your order #' . $displayNumber . '.',
         'Order summary:',
     ];
 
@@ -207,7 +210,7 @@ function send_order_confirmation(array $order, array $items): void
     $trackingUrl = sprintf('%s://%s/order-status.php?order=%s&email=%s',
         $scheme,
         $host,
-        urlencode($order['id']),
+        urlencode((string) $displayNumber),
         urlencode($order['customer_email'])
     );
 
@@ -224,11 +227,11 @@ function send_order_confirmation(array $order, array $items): void
     ];
 
     if (!deliver_mail($to, $subject, $body, $headers)) {
-        error_log('Failed to send order confirmation for order #' . $order['id']);
+        error_log('Failed to send order confirmation for order #' . $displayNumber);
     }
 }
 
-function send_newsletter_discount_email(string $email, string $code, bool $isReminder = false): void
+function send_newsletter_discount_email(string $email, string $code, bool $isReminder = false): bool
 {
     $to = $email;
     $subject = $isReminder
@@ -262,5 +265,8 @@ function send_newsletter_discount_email(string $email, string $code, bool $isRem
 
     if (!deliver_mail($to, $subject, $body, $headers)) {
         error_log('Failed to send newsletter discount email to ' . $email);
+        return false;
     }
+
+    return true;
 }

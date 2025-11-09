@@ -119,11 +119,11 @@ try {
             $summary['items_sold'] = (int) $itemsRow['items_sold'];
         }
 
-        $detailSql = 'SELECT o.id, o.customer_name, o.customer_email, o.status, o.total, o.discount_amount, o.promo_code, o.created_at, COALESCE(SUM(oi.quantity),0) AS items_sold
+        $detailSql = 'SELECT o.id, o.customer_order_number, o.customer_name, o.customer_email, o.status, o.total, o.discount_amount, o.promo_code, o.created_at, COALESCE(SUM(oi.quantity),0) AS items_sold
             FROM orders o
             LEFT JOIN order_items oi ON oi.order_id = o.id'
             . $whereSql .
-            ' GROUP BY o.id, o.customer_name, o.customer_email, o.status, o.total, o.discount_amount, o.promo_code, o.created_at
+            ' GROUP BY o.id, o.customer_order_number, o.customer_name, o.customer_email, o.status, o.total, o.discount_amount, o.promo_code, o.created_at
               ORDER BY o.created_at DESC';
 
         if (!$download) {
@@ -138,9 +138,10 @@ try {
             header('Content-Type: text/csv');
             header('Content-Disposition: attachment; filename="sales-report-' . date('Ymd-His') . '.csv"');
             $output = fopen('php://output', 'w');
-            fputcsv($output, ['Order ID', 'Customer', 'Email', 'Status', 'Items', 'Total', 'Discount', 'Promo Code', 'Placed']);
+            fputcsv($output, ['Customer Order #', 'Order ID', 'Customer', 'Email', 'Status', 'Items', 'Total', 'Discount', 'Promo Code', 'Placed']);
             foreach ($reportRows as $row) {
                 fputcsv($output, [
+                    $row['customer_order_number'] ?: $row['id'],
                     $row['id'],
                     $row['customer_name'],
                     $row['customer_email'],
@@ -306,8 +307,13 @@ require_once __DIR__ . '/includes/header.php';
                 </thead>
                 <tbody>
                     <?php foreach ($reportRows as $row): ?>
+                        <?php
+                        $displayOrderNumber = isset($row['customer_order_number']) && (int) $row['customer_order_number'] > 0
+                            ? (int) $row['customer_order_number']
+                            : (int) $row['id'];
+                        ?>
                         <tr>
-                            <td>#<?= htmlspecialchars((string) $row['id']) ?></td>
+                            <td>#<?= htmlspecialchars((string) $displayOrderNumber) ?> <span class="text-muted">(ID <?= (int) $row['id'] ?>)</span></td>
                             <td>
                                 <strong><?= htmlspecialchars($row['customer_name']) ?></strong><br>
                                 <span class="text-muted"><?= htmlspecialchars($row['customer_email']) ?></span>
