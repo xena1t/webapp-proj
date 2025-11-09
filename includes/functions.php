@@ -841,6 +841,9 @@ function fetch_orders_for_user(int $userId): array
 
         foreach ($orders as &$order) {
             $orderId = (int) $order['id'];
+            $order['customer_order_number'] = isset($order['customer_order_number']) && (int) $order['customer_order_number'] > 0
+                ? (int) $order['customer_order_number']
+                : $orderId;
             $order['items'] = $itemsByOrder[$orderId] ?? [];
         }
         unset($order);

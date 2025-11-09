@@ -175,9 +175,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 try {
                     $pdo->beginTransaction();
 
-                    $orderStmt = $pdo->prepare('INSERT INTO orders (user_id, customer_name, customer_email, shipping_address, total, discount_amount, status, promo_code) VALUES (:user_id, :name, :email, :address, :total, :discount, :status, :promo)');
+                    $customerOrderNumber = 1;
+                    if ($userId) {
+                        $orderNumberStmt = $pdo->prepare('SELECT customer_order_number FROM orders WHERE user_id = :user_id ORDER BY customer_order_number DESC LIMIT 1 FOR UPDATE');
+                        $orderNumberStmt->execute(['user_id' => $userId]);
+                        $lastOrderNumber = $orderNumberStmt->fetchColumn();
+                        if ($lastOrderNumber !== false) {
+                            $customerOrderNumber = (int) $lastOrderNumber + 1;
+                        }
+                    } elseif ($email) {
+                        $orderNumberStmt = $pdo->prepare('SELECT customer_order_number FROM orders WHERE customer_email = :email ORDER BY customer_order_number DESC LIMIT 1 FOR UPDATE');
+                        $orderNumberStmt->execute(['email' => $email]);
+                        $lastOrderNumber = $orderNumberStmt->fetchColumn();
+                        if ($lastOrderNumber !== false) {
+                            $customerOrderNumber = (int) $lastOrderNumber + 1;
+                        }
+                    }
+
+                    $orderStmt = $pdo->prepare('INSERT INTO orders (user_id, customer_order_number, customer_name, customer_email, shipping_address, total, discount_amount, status, promo_code) VALUES (:user_id, :order_number, :name, :email, :address, :total, :discount, :status, :promo)');
                     $orderStmt->execute([
                         'user_id' => $userId,
+                        'order_number' => $customerOrderNumber,
                         'name' => $name,
                         'email' => $email,
                         'address' => $shippingAddress,
@@ -222,6 +240,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     $orderSuccess = [
                         'id' => $orderId,
+                        'customer_order_number' => $customerOrderNumber,
                         'customer_name' => $name,
                         'customer_email' => $email,
                         'total' => $totalsForOrder['total'],
@@ -233,7 +252,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     clear_cart();
                     unset($_SESSION['checkout_discount']);
 
-                    header('Location: order-status.php?order=' . $orderId . '&email=' . urlencode($email));
+                    header('Location: order-status.php?order=' . $customerOrderNumber . '&email=' . urlencode($email));
                     exit;
                 } catch (Throwable $exception) {
                     if ($pdo->inTransaction()) {

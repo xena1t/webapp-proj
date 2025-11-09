@@ -25,10 +25,15 @@ require_once __DIR__ . '/includes/header.php';
     <?php else: ?>
         <div class="order-history">
             <?php foreach ($orders as $order): ?>
+                <?php
+                $displayOrderNumber = isset($order['customer_order_number']) && (int) $order['customer_order_number'] > 0
+                    ? (int) $order['customer_order_number']
+                    : (int) $order['id'];
+                ?>
                 <article class="order-history-card">
                     <header class="order-history-header">
                         <div>
-                            <h2>Order #<?= htmlspecialchars((string) $order['id']) ?></h2>
+                            <h2>Order #<?= htmlspecialchars((string) $displayOrderNumber) ?></h2>
                             <p class="text-muted">Placed on <?= date('F j, Y g:i A', strtotime($order['created_at'])) ?></p>
                         </div>
                         <div class="order-history-status">
@@ -60,7 +65,7 @@ require_once __DIR__ . '/includes/header.php';
                         </div>
                     </div>
                     <footer class="order-history-footer">
-                        <a class="btn-secondary" href="order-status.php?order=<?= urlencode((string) $order['id']) ?>&amp;email=<?= urlencode($order['customer_email']) ?>">Track this order</a>
+                        <a class="btn-secondary" href="order-status.php?order=<?= urlencode((string) $displayOrderNumber) ?>&amp;email=<?= urlencode($order['customer_email']) ?>">Track this order</a>
                         <span class="text-muted">Updates sent to <?= htmlspecialchars($order['customer_email']) ?></span>
                     </footer>
                 </article>

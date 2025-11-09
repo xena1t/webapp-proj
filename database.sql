@@ -53,6 +53,7 @@ CREATE TABLE categories (
 CREATE TABLE orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT DEFAULT NULL,
+    customer_order_number INT NOT NULL,
     customer_name VARCHAR(150) NOT NULL,
     customer_email VARCHAR(150) NOT NULL,
     shipping_address TEXT NOT NULL,
@@ -65,6 +66,7 @@ CREATE TABLE orders (
     KEY idx_orders_email (customer_email),
     KEY idx_orders_created_at (created_at),
     KEY idx_orders_user (user_id),
+    UNIQUE KEY uniq_orders_user_number (user_id, customer_order_number),
     CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
