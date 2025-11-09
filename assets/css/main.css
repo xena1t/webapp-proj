@@ -400,6 +400,52 @@ a:focus {
     max-width: 640px;
 }
 
+.service-section {
+    margin-top: 5rem;
+    padding: 4rem 3rem;
+    border-radius: calc(var(--radius-lg) + 10px);
+    background: linear-gradient(135deg, rgba(15, 139, 255, 0.12) 0%, rgba(15, 139, 255, 0) 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.service-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top right, rgba(15, 139, 255, 0.18), transparent 55%);
+    pointer-events: none;
+}
+
+.service-grid {
+    position: relative;
+    z-index: 1;
+}
+
+.service-card {
+    border: none;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
+    backdrop-filter: blur(6px);
+    min-height: 280px;
+}
+
+.service-card .card-content {
+    gap: 1.25rem;
+}
+
+.service-card__icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 1rem;
+    display: grid;
+    place-items: center;
+    font-size: 1.5rem;
+    background: rgba(15, 139, 255, 0.16);
+    color: var(--accent);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
 .cards-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -594,6 +640,18 @@ a:focus {
     border-radius: var(--radius-md);
     overflow: hidden;
     margin-top: auto;
+    aspect-ratio: 4 / 3;
+    background: linear-gradient(180deg, #f8faff 0%, #edf2ff 100%);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .product-price {
@@ -2188,10 +2246,12 @@ tr.row-archived:hover {
   border-radius: var(--radius-md);
   overflow: hidden;
   margin-top: auto;
-  /* keep consistent size even if images differ */
-  aspect-ratio: 1 / 1;
-  background: #f2f6ff;
-  border: 1px solid var(--border-color);
+  aspect-ratio: 4 / 3;
+  background: linear-gradient(180deg, #f8faff 0%, #edf2ff 100%);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .product-image img {
@@ -2458,35 +2518,35 @@ a[class*="btn"]:focus {
   .metrics-grid {
     grid-template-columns: 1fr;
   }
+
+  .service-section {
+    padding: 3rem 1.75rem;
+  }
+
+  .service-card {
+    min-height: unset;
+  }
 }
-/* === Image: show full, keep equal card heights === */
-/* Put this near the END of your CSS to override earlier rules */
+/* === Product media sizing overrides === */
+/* Keep this near the end to ensure consistency across cards */
 .product-image {
-  aspect-ratio: 1 / 1;           /* keeps rows aligned */
-  background: #f2f6ff;            /* letterbox color */
-  border: 1px solid var(--border-color);
+  aspect-ratio: 4 / 3;
+  background: linear-gradient(180deg, #f8faff 0%, #edf2ff 100%);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: var(--radius-md);
   overflow: hidden;
-  display: grid;
-  place-items: center;             /* center the image within the box */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
+
 .product-image img {
   width: 100%;
   height: 100%;
-  object-fit: contain;             /* show entire image, no crop */
+  object-fit: cover;
 }
-/* Put near the END of your CSS */
+
 #insights .product-image {
-  aspect-ratio: 1 / 1;                 /* square box */
-  background: #f2f6ff;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  display: grid;
-  place-items: center;
-}
-#insights .product-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;                  /* show full image, no crop */
+  aspect-ratio: 4 / 3;
 }

@@ -56,22 +56,25 @@ $categories = fetch_categories();
     </div>
 </section>
 
-<section class="container" style="margin-top: 5rem;">
-    <div class="cards-grid">
-        <article class="card">
+<section class="container service-section">
+    <div class="cards-grid service-grid">
+        <article class="card service-card">
             <div class="card-content">
+                <div class="service-card__icon" aria-hidden="true">🛠️</div>
                 <h3>Concierge support</h3>
                 <p>Chat with hardware experts who understand workloads from 4K editing to triple-A gaming. Get personalized recommendations in under 12 hours.</p>
             </div>
         </article>
-        <article class="card">
+        <article class="card service-card">
             <div class="card-content">
+                <div class="service-card__icon" aria-hidden="true">🚚</div>
                 <h3>Fast, insured delivery</h3>
                 <p>Every order is insured, tracked, and delivered within 48 hours in major cities—complete with zero-contact options.</p>
             </div>
         </article>
-        <article class="card">
+        <article class="card service-card">
             <div class="card-content">
+                <div class="service-card__icon" aria-hidden="true">♻️</div>
                 <h3>Sustainable upgrades</h3>
                 <p>Recycle your previous-gen tech and save up to 15% on next-gen devices with our Circular Tech Trade-in program.</p>
             </div>
