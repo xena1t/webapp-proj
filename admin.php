@@ -44,6 +44,85 @@ $addFormData = [
     'image_url' => '',
 ];
 
+function resolve_local_image_reference(string $input): ?string
+{
+    $normalized = trim($input);
+    if ($normalized === '') {
+        return null;
+    }
+
+    $normalized = str_replace('\\', '/', $normalized);
+    $normalized = preg_replace('~/+~', '/', $normalized);
+    $normalized = ltrim($normalized, '/');
+
+    if (str_contains($normalized, '..')) {
+        return null;
+    }
+
+    $mapping = [
+        'assets/images/' => 'assets/images/',
+        'images/' => 'assets/images/',
+        'assets/uploads/' => 'assets/uploads/',
+        'uploads/' => 'assets/uploads/',
+    ];
+
+    foreach ($mapping as $prefix => $targetPrefix) {
+        if (str_starts_with($normalized, $prefix)) {
+            $relative = $targetPrefix === $prefix
+                ? $normalized
+                : $targetPrefix . substr($normalized, strlen($prefix));
+            $fullPath = __DIR__ . '/' . $relative;
+            if (is_file($fullPath)) {
+                return $relative;
+            }
+            return null;
+        }
+    }
+
+    return null;
+}
+
+function list_local_image_references(): array
+{
+    $directories = [
+        'assets/images' => __DIR__ . '/assets/images',
+        'assets/uploads' => __DIR__ . '/assets/uploads',
+    ];
+
+    $extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+    $references = [];
+
+    foreach ($directories as $prefix => $absoluteDir) {
+        if (!is_dir($absoluteDir)) {
+            continue;
+        }
+
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($absoluteDir, RecursiveDirectoryIterator::SKIP_DOTS)
+        );
+
+        foreach ($iterator as $fileInfo) {
+            if (!$fileInfo->isFile()) {
+                continue;
+            }
+
+            $extension = strtolower($fileInfo->getExtension());
+            if (!in_array($extension, $extensions, true)) {
+                continue;
+            }
+
+            $relativePath = substr($fileInfo->getPathname(), strlen($absoluteDir));
+            $relativePath = ltrim(str_replace('\\', '/', $relativePath), '/');
+            $references[] = $prefix . '/' . $relativePath;
+        }
+    }
+
+    $references = array_values(array_unique($references));
+    sort($references, SORT_STRING | SORT_FLAG_CASE);
+
+    return $references;
+}
+
 /* ----------------------------
 |  POST actions
 | ---------------------------- */
@@ -192,13 +271,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
         } elseif ($imageUrlInput !== '') {
-            if (!filter_var($imageUrlInput, FILTER_VALIDATE_URL)) {
-                $errors[] = 'The external image URL must be a valid URL.';
-            } else {
+            $localImage = resolve_local_image_reference($imageUrlInput);
+            if ($localImage !== null) {
+                $imageUrl = $localImage;
+            } elseif (filter_var($imageUrlInput, FILTER_VALIDATE_URL)) {
                 $imageUrl = $imageUrlInput;
+            } else {
+                $errors[] = 'Provide a full https:// URL or a path within assets/images or assets/uploads.';
             }
         } else {
-            $errors[] = 'Upload an image or provide an image URL.';
+            $errors[] = 'Upload an image, provide a local asset path, or enter an image URL.';
         }
 
         // specs JSON
@@ -367,16 +449,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 if ($imageUrlInput !== '') {
-                    if (!filter_var($imageUrlInput, FILTER_VALIDATE_URL)) {
-                        $errors[] = 'The external image URL must be a valid URL.';
-                    } else {
+                    $localImage = resolve_local_image_reference($imageUrlInput);
+                    if ($localImage !== null) {
+                        $imageUrl = $localImage;
+                        $removePreviousImage = true;
+                    } elseif (filter_var($imageUrlInput, FILTER_VALIDATE_URL)) {
                         $imageUrl = $imageUrlInput;
                         $removePreviousImage = true;
+                    } else {
+                        $errors[] = 'Provide a full https:// URL or a path within assets/images or assets/uploads.';
                     }
                 }
 
                 if ($imageUrl === '' && $uploadInfo === null && $imageUrlInput === '') {
-                    $errors[] = 'Upload an image or provide an image URL for this product.';
+                    $errors[] = 'Upload an image, provide a local asset path, or enter an image URL for this product.';
                 }
 
                 $specJsonValue = null;
@@ -478,6 +564,7 @@ if (!in_array($show, ['active', 'all', 'archived'], true)) {
 $allProductsRaw = fetch_products_by_category(null, null, false); // false = include archived too
 $categoryOptions = fetch_categories(false);
 $categoryUsage = fetch_category_product_counts(false);
+$localImageOptions = list_local_image_references();
 
 $allProducts = array_values(array_filter($allProductsRaw, function ($p) use ($show) {
     $active = (int)($p['is_active'] ?? 1) === 1;
@@ -514,6 +601,11 @@ require_once __DIR__ . '/includes/header.php';
     <datalist id="category-options">
         <?php foreach ($categoryOptions as $categoryOption): ?>
             <option value="<?= htmlspecialchars($categoryOption) ?>"></option>
+        <?php endforeach; ?>
+    </datalist>
+    <datalist id="local-image-options">
+        <?php foreach ($localImageOptions as $imageOption): ?>
+            <option value="<?= htmlspecialchars($imageOption) ?>"></option>
         <?php endforeach; ?>
     </datalist>
 
@@ -609,8 +701,9 @@ require_once __DIR__ . '/includes/header.php';
             <div><label for="image">Upload image</label>
                 <input type="file" id="image" name="image" accept="image/*">
             </div>
-            <div><label for="image_url">Or provide external image URL</label>
-                <input type="url" id="image_url" name="image_url" placeholder="https://example.com/image.jpg" value="<?= htmlspecialchars($addFormData['image_url']) ?>">
+            <div><label for="image_url">Image URL or local asset path</label>
+                <input type="text" id="image_url" name="image_url" list="local-image-options" placeholder="assets/images/products/example.svg or https://example.com/image.jpg" value="<?= htmlspecialchars($addFormData['image_url']) ?>">
+                <small class="form-hint">Store files in <code>assets/images/</code> (or use an uploaded file) and reference them here.</small>
             </div>
             <div style="grid-column:1 / -1;"><label for="spec_json">Specifications (JSON)</label>
                 <textarea id="spec_json" name="spec_json" rows="4" placeholder='{"Processor":"Intel", "RAM":"16GB"}'><?= htmlspecialchars($addFormData['spec_json']) ?></textarea>
@@ -745,8 +838,8 @@ require_once __DIR__ . '/includes/header.php';
                                                 <input type="file" id="edit-image-<?= $productId ?>" name="image" accept="image/*">
                                             </div>
                                             <div>
-                                                <label for="edit-image-url-<?= $productId ?>">Or provide external image URL</label>
-                                                <input type="url" id="edit-image-url-<?= $productId ?>" name="image_url" placeholder="https://example.com/image.jpg" value="<?= htmlspecialchars($formData['image_url_input']) ?>">
+                                                <label for="edit-image-url-<?= $productId ?>">Image URL or local asset path</label>
+                                                <input type="text" id="edit-image-url-<?= $productId ?>" name="image_url" list="local-image-options" placeholder="assets/images/products/example.svg or https://example.com/image.jpg" value="<?= htmlspecialchars($formData['image_url_input']) ?>">
                                                 <small class="current-image">Current image: <?= htmlspecialchars($product['image_url'] ?? 'None') ?></small>
                                             </div>
                                             <div class="manage-product-field-full">

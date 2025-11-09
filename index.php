@@ -26,6 +26,7 @@ $categories = fetch_categories();
     <p class="section-subtitle">Handpicked devices engineered for creative pros and competitive gamers.</p>
     <div class="cards-grid">
         <?php foreach ($featuredProducts as $product): ?>
+            <?php $imageUrl = asset_url((string) $product['image_url']); ?>
             <article class="card">
                 <div class="card-content">
                     <h3><?= htmlspecialchars($product['name']) ?></h3>
@@ -33,7 +34,7 @@ $categories = fetch_categories();
                     <div class="product-price"><?= format_price((float) $product['price']) ?></div>
                     <a class="btn-secondary" href="product.php?id=<?= $product['id'] ?>">View details</a>
                     <div class="product-image">
-                        <img src="<?= htmlspecialchars($product['image_url']) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
+                        <img src="<?= htmlspecialchars($imageUrl) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
                     </div>
                 </div>
             </article>

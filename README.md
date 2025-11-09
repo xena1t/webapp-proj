@@ -55,3 +55,35 @@ A bespoke e-commerce experience for premium consumer electronics and IT gear, bu
 - Replace remote Unsplash image URLs with locally hosted assets in `assets/images/` if an offline deployment is required.
 - `assets/js/app.js` stores a flag in `localStorage` to avoid showing the newsletter modal repeatedly.
 - Extendable architecture: create new pages by setting `$pageTitle` before including `includes/header.php`, then reusing shared components.
+
+## Seeding catalog data
+- Import `database.sql` into MySQL to recreate the full schema plus an expanded product catalog. The seed now includes a mix of laptops, peripherals, and components that showcase both remote image URLs and locally hosted SVG assets under `assets/images/products/`.
+- Re-running the SQL file will reset the catalog. If you only want to append new entries, copy the relevant `INSERT INTO products ...` rows into a separate SQL file or execute them manually inside phpMyAdmin.
+
+## Working with product images
+- The admin panel supports three image sources per product:
+  1. Upload a file (stored in `assets/uploads/`).
+  2. Reference an existing asset under `assets/images/` by entering a relative path such as
+     `assets/images/products/aurora-air-14.svg` (a datalist suggests known files).
+  3. Paste a full `https://` URL for third-party hosting.
+- When supplying a local path, place the image anywhere under `assets/images/` (or an uploaded file under `assets/uploads/`).
+  The admin form normalises the path, verifies that the file exists, and stores the relative reference in MySQL.
+
+## Adding more products manually
+1. Prepare an image and decide whether it will live locally (`assets/images/...`), be uploaded through the admin form, or be
+   hosted remotely.
+2. Insert a new row into the `products` table by either:
+   - Using the admin panel (**Products → Add a new product**), which now accepts local paths via the “Image URL or local asset
+     path” input, or
+   - Running a SQL statement such as:
+     ```sql
+     INSERT INTO products
+         (name, category, tagline, description, price, stock, image_url, featured)
+     VALUES
+         ('Nova PSU 1200 Titanium', 'Components', 'Silent 80+ Titanium supply',
+          'Dual EPS12V connectors with fully modular sleeved cables.', 399.00, 24,
+          'assets/images/products/quantum-psu-850.svg', 0);
+     ```
+     Add an optional `spec_json` column value via `JSON_OBJECT(...)` to surface detailed specs on the product detail page.
+3. Refresh the catalog page; the new entry will appear automatically if the category is visible and the product is marked
+   active.

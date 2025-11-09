@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400">
+  <defs>
+    <linearGradient id="auroraGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6dd5fa"/>
+      <stop offset="100%" stop-color="#2980b9"/>
+    </linearGradient>
+  </defs>
+  <rect fill="#0f172a" width="640" height="400" rx="32"/>
+  <rect x="60" y="76" width="520" height="260" rx="18" fill="#101b3a" stroke="#334155" stroke-width="6"/>
+  <rect x="90" y="110" width="460" height="180" rx="12" fill="url(#auroraGradient)"/>
+  <rect x="60" y="336" width="520" height="16" rx="8" fill="#1e293b"/>
+  <rect x="120" y="352" width="400" height="20" rx="10" fill="#38bdf8" opacity="0.35"/>
+  <circle cx="320" cy="200" r="34" fill="#0ea5e9" opacity="0.4"/>
+</svg>
