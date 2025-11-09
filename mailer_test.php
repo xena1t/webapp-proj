@@ -1,4 +1,4 @@
 <?php
-mail('f32ee@localhost', 'Test', 'Hello Mercury Local', 'From: f32ee@localhost');
+mail('f32ee@localhost', 'Test', 'Hello Mercury Local', 'From: noreply@localhost');
 echo 'Mail sent.';
 ?>

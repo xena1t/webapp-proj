@@ -211,8 +211,8 @@ function send_order_confirmation(array $order, array $items): void
         urlencode($order['customer_email'])
     );
 
-    $lines[] = 'You can track your order anytime at: ' . $trackingUrl;
-    $lines[] = '';
+    // $lines[] = 'You can track your order anytime at: ' . $trackingUrl;
+    // $lines[] = '';
     $lines[] = 'We will send another email when your order ships. Have questions? Reply to this email and our specialists will help.';
     $lines[] = '';
     $lines[] = '— ' . SITE_NAME . ' Team';
