@@ -172,7 +172,7 @@ WHERE tagline IN (
   'Focus on your mix—not the noise'
 );
 
-IINSERT INTO products (name, category, tagline, description, price, stock, image_url, spec_json, featured) VALUES
+INSERT INTO products (name, category, tagline, description, price, stock, image_url, spec_json, featured) VALUES
 ('Aurora OpenWave', 'Audio', 'Open-back studio precision', 'The Aurora OpenWave delivers spacious, lifelike sound with 50mm planar magnetic drivers, breathable ear cushions, and a lightweight magnesium frame for all-day comfort.', 499.00, 25, 'assets/images/audio/openback.png', JSON_OBJECT(
   'Driver Type', '50mm Planar Magnetic',
   'Design', 'Open-back, over-ear',

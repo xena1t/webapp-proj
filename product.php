@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $specs = [];
 if (!empty($product['spec_json'])) {
     $decoded = json_decode($product['spec_json'], true);
-    if (is_array($decoded)) {
+    if (is_array(value: $decoded)) {
         $specs = $decoded;
     }
 }

@@ -19,7 +19,7 @@ $errors = [];
 if ($username === '' || $email === '' || $password === '' || $confirm === '') {
     $errors[] = 'All fields are required.';
 }
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+if (!filter_var($email, filter: FILTER_VALIDATE_EMAIL)) {
     $errors[] = 'Invalid email address.';
 }
 if (!preg_match('/^[A-Za-z0-9._-]{3,32}$/', $username)) {

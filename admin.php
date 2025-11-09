@@ -517,7 +517,7 @@ require_once __DIR__ . '/includes/header.php';
         <?php endforeach; ?>
     </datalist>
 
-    <section style="margin-bottom: 2rem;">
+    <!-- <section style="margin-bottom: 2rem;">
         <h2>Catalog categories</h2>
         <form method="post" class="form-grid" style="gap: 1rem; max-width: 32rem;">
             <input type="hidden" name="action" value="add_category">
@@ -581,7 +581,7 @@ require_once __DIR__ . '/includes/header.php';
         <?php else: ?>
             <p style="margin-top:1rem;" class="text-muted">No categories yet.</p>
         <?php endif; ?>
-    </section>
+    </section> -->
 
     <section style="margin-bottom: 2rem;">
         <h2>Add a new product</h2>
