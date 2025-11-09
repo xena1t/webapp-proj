@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ];
         $emailBody = implode("\n", $emailBody);
 
-        $sent = deliver_mail('support@techmart.local', 'Contact request from ' . $formValues['name'], $emailBody);
+        $sent = deliver_mail('support@local.com', 'Contact request from ' . $formValues['name'], $emailBody);
 
         if ($sent) {
             $successMessage = 'Thanks for reaching out! Our support team will reply within one business day.';

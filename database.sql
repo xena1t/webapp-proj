@@ -254,3 +254,16 @@ INSERT INTO products (name, category, tagline, description, price, stock, image_
   'Connectivity', 'Wi-Fi 6E, Bluetooth 5.3, USB-C',
   'Battery', '9000 mAh (up to 12 hrs)'
 ), 0);
+
+
+INSERT INTO orders (user_id, customer_order_number, customer_name, customer_email, shipping_address, total, discount_amount, status, promo_code, created_at, updated_at) VALUES
+(2, 100001, 'Taylor Reed', 'taylor@example.com', '123 Creator Lane\nAustin, TX 73301', 2799.00, 0.00, 'Delivered', NULL, '2024-04-18 10:32:00', '2024-04-20 14:22:00'),
+(2, 100002, 'Morgan Ellis', 'morgan@example.com', '456 Pixel Avenue\nSeattle, WA 98101', 349.00, 20.00, 'Delivered', 'SPRING20', '2024-05-02 13:10:00', '2024-05-04 09:45:00'),
+(2, 100003, 'Jordan Blake', 'jordan@example.com', '789 Creator Boulevard\nNew York, NY 10001', 1299.00, 0.00, 'Delivered', NULL, '2024-05-10 16:25:00', '2024-05-12 08:00:00');
+
+INSERT INTO order_reviews (order_id, reviewer_name, reviewer_email, rating, comments, created_at) VALUES
+(1, 'Taylor Reed', 'taylor@example.com', 5, 'From the unboxing to the last render, this machine has been flawless.', '2024-04-25 09:15:00'),
+(2, 'Morgan Ellis', 'morgan@example.com', 4, 'Noise cancellation is stellar, though the ear cushions warm up during marathon mixes.', '2024-05-06 11:20:00'),
+(3, 'Jordan Blake', 'jordan@example.com', 5, 'Colors are spot-on and Thunderbolt passthrough keeps my desk tidy.', '2024-05-15 08:05:00');
+
+

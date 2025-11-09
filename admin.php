@@ -466,7 +466,7 @@ if (isset($_GET['manage'])) {
 }
 
 /* ----------------------------
-|  Fetch (include inactive in admin)
+|  Fetch 
 | ---------------------------- */
 // Show filter: active (default) | all | archived
 $show = isset($_GET['show']) ? strtolower(trim($_GET['show'])) : 'active';
