@@ -67,10 +67,10 @@
                 </select>
 
                 <fieldset>
-                    <legend>Budget focus</legend>
-                    <label><input type="radio" name="budget" value="Value" required> Value</label>
-                    <label><input type="radio" name="budget" value="Mid-range"> Mid-range</label>
-                    <label><input type="radio" name="budget" value="Premium"> Premium</label>
+                    <legend>Upgrade timeline</legend>
+                    <label><input type="radio" name="budget" value="Ready to upgrade" required> Ready to upgrade</label>
+                    <label><input type="radio" name="budget" value="Planning soon"> Planning soon</label>
+                    <label><input type="radio" name="budget" value="Just researching"> Just researching</label>
                 </fieldset>
 
                 <label class="checkbox">
